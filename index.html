@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Minecraft Manager (Realtime)</title>
+  <title>Minecraft Manager (Ultimate Edition)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link
-    href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&family=Press+Start+2P&display=swap"
     rel="stylesheet"
   />
   <link
@@ -19,7 +19,10 @@
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ["Kanit", "sans-serif"] },
+          fontFamily: { 
+            sans: ["Kanit", "sans-serif"],
+            pixel: ['"Press Start 2P"', 'cursive'] 
+          },
           colors: { bgDark: "#0f172a", cardDark: "#1e293b" }
         }
       }
@@ -29,22 +32,41 @@
   <style>
     :root {
       --accent-color: #8b5cf6;
+      --cursor-url: url('https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/diamond_sword.png');
     }
 
+    /* 1. Minecraft Cursor */
     body {
       background-color: #020617;
-      background-image: linear-gradient(
-          rgba(15, 23, 42, 0.96),
-          rgba(15, 23, 42, 0.98)
-        ),
-        url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/deepslate_top.png");
+      /* Default Overworld */
+      background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.95)),
+        url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/dirt.png"); 
       background-size: cover, 64px;
       background-attachment: fixed;
       color: white;
       image-rendering: pixelated;
+      cursor: url('https://cdnjs.cloudflare.com/ajax/libs/cursor-effects/1.0.0/cursor/minecraft-sword.png'), auto; /* Fallback cursor */
     }
 
-    /* panel เบาเครื่อง (ไม่มี blur หนัก ๆ) */
+    /* 2. Enchanted Glow Effect */
+    .enchanted {
+      position: relative;
+      overflow: hidden;
+    }
+    .enchanted::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0) 0%, rgba(168, 85, 247, 0.2) 50%, rgba(168, 85, 247, 0) 100%);
+      background-size: 200% 200%;
+      animation: enchantShimmer 2s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes enchantShimmer {
+      0% { background-position: 200% 200%; }
+      100% { background-position: -200% -200%; }
+    }
+
     .glass-panel {
       background: rgba(15, 23, 42, 0.96);
       border-radius: 12px;
@@ -52,52 +74,22 @@
       box-shadow: 0 10px 28px rgba(15, 23, 42, 0.85);
     }
 
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #020617;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #475569;
-      border-radius: 999px;
-    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #020617; }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 999px; }
 
-    .pixel-art {
-      image-rendering: pixelated;
-    }
+    .pixel-art { image-rendering: pixelated; }
+    .theme-bg { background-color: var(--accent-color); }
+    .theme-text { color: var(--accent-color); }
 
-    .theme-bg {
-      background-color: var(--accent-color);
-    }
-    .theme-text {
-      color: var(--accent-color);
-    }
-
-    /* การ์ดเด้งตอนเข้าหน้า */
-    .anim-card {
-      animation: cardIn 260ms ease-out;
-      will-change: transform, opacity;
-    }
+    .anim-card { animation: cardIn 260ms ease-out; will-change: transform, opacity; }
     @keyframes cardIn {
-      from {
-        opacity: 0;
-        transform: translateY(6px) scale(0.98);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
+      from { opacity: 0; transform: translateY(6px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    /* hover ให้เด้งนิด ๆ */
     .hover-pop {
-      transition:
-        transform 150ms ease,
-        box-shadow 150ms ease,
-        border-color 150ms ease,
-        background-color 150ms ease;
-      will-change: transform, box-shadow;
+      transition: all 150ms ease;
     }
     .hover-pop:hover {
       transform: translateY(-2px) scale(1.01);
@@ -105,316 +97,249 @@
       border-color: rgba(129, 140, 248, 0.9);
     }
 
-    /* ปุ่มเด้งเบา ๆ */
-    .btn-soft {
-      transition:
-        transform 130ms ease,
-        box-shadow 130ms ease,
-        background-color 130ms ease,
-        color 130ms ease;
-      will-change: transform, box-shadow;
+    .btn-soft { transition: all 130ms ease; }
+    .btn-soft:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(15, 23, 42, 0.8); }
+    .btn-soft:active { transform: translateY(0) scale(0.97); }
+
+    /* 3. Toast Notification Styles */
+    #toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
-    .btn-soft:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.8);
+    .toast {
+      background: #1e293b;
+      border-left: 4px solid var(--accent-color);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      font-size: 0.9rem;
+      animation: slideIn 0.3s ease-out forwards, fadeOut 0.3s ease-in 2.7s forwards;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 250px;
     }
-    .btn-soft:active {
-      transform: translateY(0) scale(0.97);
-      box-shadow: none;
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; pointer-events: none; } }
+
+    /* 4. XP Bar Styles */
+    .xp-bar-container {
+      height: 14px;
+      background: #000;
+      border: 2px solid #373737;
+      border-radius: 2px;
+      position: relative;
+      margin-top: 4px;
+    }
+    .xp-fill {
+      height: 100%;
+      background: linear-gradient(to bottom, #80ff20 0%, #46aa06 100%);
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    .xp-text {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Press Start 2P', cursive;
+      color: #80ff20;
+      font-size: 10px;
+      text-shadow: 2px 2px 0 #000;
     }
 
-    /* panel ของ modal ใช้กับ animation เปิด/ปิด */
-    .modal-panel {
-      transform-origin: center;
+    /* 5. Inventory Grid Mode */
+    .grid-view-mode {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+      gap: 8px;
     }
+    .grid-view-mode .item-card {
+      flex-direction: column;
+      padding: 8px;
+      text-align: center;
+      height: 100%;
+    }
+    .grid-view-mode .item-card img { width: 40px; height: 40px; margin-bottom: 4px; }
+    .grid-view-mode .item-details { display: none; } /* Hide details in grid mode for cleaner look */
+    .grid-view-mode .item-badge { position: absolute; top: 2px; right: 2px; }
+
   </style>
 </head>
 
 <body class="min-h-screen p-4 md:p-8 font-sans transition-colors duration-500">
-  <!-- HEADER -->
-  <header
-    class="max-w-7xl mx-auto mb-6 flex flex-col xl:flex-row justify-between items-center gap-4"
-  >
-    <div>
-      <h1 class="text-4xl font-bold text-white drop-shadow-md">
-        MC <span class="theme-text">Manager</span>
-        <span
-          class="text-xs bg-emerald-500 text-black px-2 py-0.5 rounded font-bold"
-          >SPEED</span
-        >
-      </h1>
-      <p class="text-slate-400 text-sm mt-1">
-        Realtime &amp; Optimistic UI (1.21+)
-      </p>
+  
+  <div id="toast-container"></div>
+
+  <header class="max-w-7xl mx-auto mb-6 flex flex-col xl:flex-row justify-between items-center gap-4">
+    <div class="flex items-center gap-4">
+        <div>
+            <h1 class="text-4xl font-bold text-white drop-shadow-md flex items-center gap-2">
+                MC <span class="theme-text">Manager</span>
+                <span class="text-xs bg-emerald-500 text-black px-2 py-0.5 rounded font-bold shadow-[0_0_10px_rgba(16,185,129,0.5)]">PRO</span>
+            </h1>
+            <div class="w-48 relative mt-3">
+                <span class="xp-text" id="levelDisplay">LVL 0</span>
+                <div class="xp-bar-container">
+                    <div id="globalXpBar" class="xp-fill"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- STATUS + BACKUP -->
-    <div class="flex items-center gap-4">
-      <div class="flex flex-col items-end text-xs text-slate-400 mr-2">
-        <div class="flex items-center gap-2">
+    <div class="flex flex-wrap items-center justify-end gap-3">
+      <select id="biomeSelect" onchange="changeBiome(this.value)" class="bg-slate-800 text-xs text-white p-2 rounded border border-slate-600 outline-none hover:border-[var(--accent-color)] cursor-pointer">
+        <option value="overworld">🌲 Overworld</option>
+        <option value="nether">🔥 Nether</option>
+        <option value="end">🌌 The End</option>
+      </select>
+
+      <button onclick="toggleSound()" id="soundBtn" class="bg-slate-800 p-2 rounded border border-slate-600 hover:text-[var(--accent-color)] btn-soft" title="Toggle SFX">
+        <i class="fa-solid fa-volume-high"></i>
+      </button>
+
+      <div class="hidden md:flex flex-col items-end text-xs text-slate-400 mr-2 border-r pr-4 border-slate-700">
+        <span id="randomTip" class="text-[10px] text-yellow-300 italic animate-pulse">"Don't dig straight down!"</span>
+        <div class="flex items-center gap-2 mt-1">
           <span id="statusDot" class="w-2 h-2 rounded-full bg-red-500"></span>
           <span id="statusText">Connecting...</span>
         </div>
-        <span class="text-[10px] text-slate-500">Firebase Realtime</span>
       </div>
 
-      <button
-        onclick="backupData()"
-        class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded btn-soft"
-        title="Backup"
-      >
+      <button onclick="backupData()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded btn-soft" title="Backup (JSON)">
         <i class="fa-solid fa-download"></i>
       </button>
-      <button
-        onclick="document.getElementById('fileInput').click()"
-        class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded btn-soft"
-        title="Restore"
-      >
+      <button onclick="document.getElementById('fileInput').click()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded btn-soft" title="Restore (JSON)">
         <i class="fa-solid fa-upload"></i>
       </button>
-      <input
-        type="file"
-        id="fileInput"
-        class="hidden"
-        onchange="restoreData(this)"
-      />
-      <button
-        onclick="openModal('projectModal')"
-        class="theme-bg text-white px-5 py-2 rounded shadow-lg font-bold hover:brightness-110 active:scale-95 transition-all btn-soft"
-      >
-        <i class="fa-solid fa-plus"></i> New Project
+      <input type="file" id="fileInput" class="hidden" onchange="restoreData(this)" />
+      
+      <button onclick="exportToCSV()" class="bg-green-800/50 hover:bg-green-800 text-green-300 px-3 py-2 rounded border border-green-700/50 btn-soft" title="Export CSV">
+        <i class="fa-solid fa-file-csv"></i>
+      </button>
+
+      <button onclick="openModal('projectModal')" class="theme-bg text-white px-5 py-2 rounded shadow-lg font-bold hover:brightness-110 active:scale-95 transition-all btn-soft flex items-center gap-2">
+        <i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">New Project</span> <span class="text-[10px] bg-white/20 px-1.5 rounded">N</span>
       </button>
     </div>
   </header>
 
-  <!-- MAIN LAYOUT -->
   <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-    <!-- SIDEBAR -->
     <div class="lg:col-span-3 space-y-6">
       <div class="glass-panel p-6 anim-card">
-        <!-- SEARCH -->
         <div class="relative mb-4">
-          <i
-            class="fa-solid fa-search absolute left-3 top-3 text-slate-500"
-          ></i>
+          <i class="fa-solid fa-search absolute left-3 top-3 text-slate-500"></i>
           <input
             type="text"
-            placeholder="ค้นหาโปรเจกต์หรือชื่อบล็อก..."
+            placeholder="Search projects / items..."
             oninput="filterProjects(this.value, 'search')"
-            class="w-full bg-slate-900 border border-slate-600 rounded p-2 pl-9 text-white focus:border-[var(--accent-color)] outline-none"
+            class="w-full bg-slate-900 border border-slate-600 rounded p-2 pl-9 text-white focus:border-[var(--accent-color)] outline-none transition-all focus:ring-1 ring-[var(--accent-color)]"
           />
         </div>
 
-        <!-- STATS -->
         <div class="grid grid-cols-2 gap-3 mb-4">
-          <div
-            class="bg-slate-900/50 p-3 rounded border border-slate-600 text-center"
-          >
-            <span
-              class="text-2xl font-bold text-white block"
-              id="totalProjects"
-              >-</span
-            >
+          <div class="bg-slate-900/50 p-3 rounded border border-slate-600 text-center group hover:border-[var(--accent-color)] transition-colors">
+            <span class="text-2xl font-bold text-white block group-hover:scale-110 transition-transform" id="totalProjects">-</span>
             <span class="text-[10px] text-slate-400">PROJECTS</span>
           </div>
-          <div
-            class="bg-slate-900/50 p-3 rounded border border-slate-600 text-center"
-          >
-            <span
-              class="text-2xl font-bold text-emerald-400 block"
-              id="completionRate"
-              >0%</span
-            >
-            <span class="text-[10px] text-slate-400">DONE</span>
+          <div class="bg-slate-900/50 p-3 rounded border border-slate-600 text-center group hover:border-emerald-500 transition-colors">
+            <span class="text-2xl font-bold text-emerald-400 block group-hover:scale-110 transition-transform" id="completionRate">0%</span>
+            <span class="text-[10px] text-slate-400">GLOBAL COMPLETED</span>
           </div>
         </div>
 
-        <!-- FILTERS -->
         <div class="space-y-1">
-          <button
-            onclick="filterProjects('all', 'cat')"
-            class="w-full text-left px-3 py-2 rounded hover:bg-slate-700 text-sm text-slate-300 flex items-center gap-2 btn-soft"
-          >
-            <i class="fa-solid fa-layer-group"></i> ทั้งหมด
+          <button onclick="filterProjects('all', 'cat')" class="w-full text-left px-3 py-2 rounded hover:bg-slate-700 text-sm text-slate-300 flex items-center gap-2 btn-soft transition-colors focus:bg-slate-700">
+            <i class="fa-solid fa-layer-group"></i> All
           </button>
-          <button
-            onclick="filterProjects('farm', 'cat')"
-            class="w-full text-left px-3 py-2 rounded hover:bg-slate-700 text-sm text-slate-300 flex items-center gap-2 btn-soft"
-          >
+          <button onclick="filterProjects('farm', 'cat')" class="w-full text-left px-3 py-2 rounded hover:bg-slate-700 text-sm text-slate-300 flex items-center gap-2 btn-soft">
             <i class="fa-solid fa-wheat-awn text-emerald-400"></i> Farm
           </button>
-          <button
-            onclick="filterProjects('build', 'cat')"
-            class="w-full text-left px-3 py-2 rounded hover:bg-slate-700 text-sm text-slate-300 flex items-center gap-2 btn-soft"
-          >
+          <button onclick="filterProjects('build', 'cat')" class="w-full text-left px-3 py-2 rounded hover:bg-slate-700 text-sm text-slate-300 flex items-center gap-2 btn-soft">
             <i class="fa-solid fa-hammer text-blue-400"></i> Build
           </button>
-          <button
-            onclick="filterProjects('redstone', 'cat')"
-            class="w-full text-left px-3 py-2 rounded hover:bg-slate-700 text-sm text-slate-300 flex items-center gap-2 btn-soft"
-          >
+          <button onclick="filterProjects('redstone', 'cat')" class="w-full text-left px-3 py-2 rounded hover:bg-slate-700 text-sm text-slate-300 flex items-center gap-2 btn-soft">
             <i class="fa-solid fa-microchip text-red-400"></i> Redstone
           </button>
         </div>
 
-        <!-- COMPACT TOGGLE -->
-        <div
-          class="mt-4 pt-4 border-t border-slate-700 flex justify-between items-center text-sm text-slate-400"
-        >
+        <div class="mt-4 pt-4 border-t border-slate-700 flex justify-between items-center text-sm text-slate-400">
           <span>Compact View</span>
-          <button
-            onclick="toggleCompactMode()"
-            id="compactBtn"
-            class="text-slate-500 hover:text-white btn-soft"
-          >
+          <button onclick="toggleCompactMode()" id="compactBtn" class="text-slate-500 hover:text-white btn-soft">
             <i class="fa-solid fa-toggle-off text-2xl"></i>
           </button>
         </div>
       </div>
 
-      <button
-        onclick="openTrash()"
-        class="w-full py-3 rounded border border-red-900/30 text-red-400 hover:bg-red-900/20 transition-all text-sm flex items-center justify-center gap-2 btn-soft glass-panel"
-      >
+      <div class="glass-panel p-4 hidden lg:block anim-card">
+        <h4 class="text-xs font-bold text-slate-400 mb-2 uppercase"><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</h4>
+        <div id="activityLog" class="text-[10px] text-slate-500 space-y-2 max-h-32 overflow-y-auto font-mono">
+           <p class="italic opacity-50">No recent actions...</p>
+        </div>
+      </div>
+
+      <button onclick="openTrash()" class="w-full py-3 rounded border border-red-900/30 text-red-400 hover:bg-red-900/20 transition-all text-sm flex items-center justify-center gap-2 btn-soft glass-panel">
         <i class="fa-solid fa-trash-arrow-up"></i> Recycle Bin
       </button>
     </div>
 
-    <!-- PROJECT LIST -->
     <div class="lg:col-span-9">
-      <div
-        id="projectList"
-        class="grid gap-4 pb-20 grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
-      ></div>
+      <div id="projectList" class="grid gap-4 pb-20 grid-cols-1 md:grid-cols-2 xl:grid-cols-3"></div>
     </div>
   </div>
 
-  <!-- DETAIL MODAL -->
-  <div
-    id="detailModal"
-    class="fixed inset-0 bg-black/90 hidden items-center justify-center z-50 backdrop-blur-sm"
-  >
-    <div
-      class="glass-panel bg-slate-900 rounded-lg w-full max-w-4xl mx-4 overflow-hidden flex flex-col h-[90vh] shadow-2xl border border-slate-700 modal-panel transform scale-95 opacity-0 transition-all duration-150"
-    >
-      <div
-        class="p-5 border-b border-slate-700 bg-slate-900/80 flex justify-between items-center"
-      >
+  <div id="detailModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div class="glass-panel bg-slate-900 rounded-lg w-full max-w-4xl mx-4 overflow-hidden flex flex-col h-[90vh] shadow-2xl border border-slate-700 modal-panel transform scale-95 opacity-0 transition-all duration-150 relative">
+      
+      <div class="p-5 border-b border-slate-700 bg-slate-900/80 flex justify-between items-center z-10">
         <div class="flex items-center gap-4">
-          <div
-            id="projectIconHeader"
-            class="w-12 h-12 rounded bg-slate-800 flex items-center justify-center border border-slate-600 text-2xl"
-          ></div>
+          <div id="projectIconHeader" class="w-12 h-12 rounded bg-slate-800 flex items-center justify-center border border-slate-600 text-2xl shadow-inner"></div>
           <div>
-            <h3
-              class="text-2xl font-bold text-white flex items-center gap-2"
-              id="detailTitle"
-            >
-              ...
-            </h3>
-            <div class="flex gap-2 mt-1 items-center">
-              <span
-                class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300 border border-slate-600"
-                id="detailCat"
-                >Build</span
-              >
-              <button
-                onclick="toggleNote()"
-                class="text-xs text-yellow-400 hover:text-yellow-300 btn-soft"
-              >
-                <i class="fa-solid fa-sticky-note"></i> Notes
-              </button>
-              <button
-                onclick="toggleLayers()"
-                class="text-xs text-sky-400 hover:text-sky-300 btn-soft"
-              >
-                <i class="fa-solid fa-layer-group"></i> Layers
-              </button>
+            <h3 class="text-2xl font-bold text-white flex items-center gap-2" id="detailTitle">...</h3>
+            <div class="flex gap-2 mt-1 items-center flex-wrap">
+              <span class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300 border border-slate-600" id="detailCat">Build</span>
+              <button onclick="toggleNote()" class="text-xs text-yellow-400 hover:text-yellow-300 btn-soft"><i class="fa-solid fa-sticky-note"></i> Notes</button>
+              <button onclick="toggleLayers()" class="text-xs text-sky-400 hover:text-sky-300 btn-soft"><i class="fa-solid fa-layer-group"></i> Layers</button>
             </div>
-            <div
-              id="detailSummary"
-              class="mt-1 text-[11px] text-slate-400"
-            ></div>
-            <div
-              class="mt-1 text-[11px] text-slate-500 flex items-center gap-2"
-            >
-              <span>Code:</span>
-              <code
-                id="detailCode"
-                class="bg-slate-900 border border-slate-700 px-1.5 py-0.5 rounded text-[10px]"
-              ></code>
-              <button
-                onclick="copyProjectCode()"
-                class="px-2 py-0.5 rounded bg-slate-800 border border-slate-600 text-[10px] hover:bg-slate-700 btn-soft"
-              >
-                Copy
-              </button>
-            </div>
+            <div id="detailSummary" class="mt-1 text-[11px] text-slate-400"></div>
           </div>
         </div>
         <div class="flex gap-2">
-          <button
-            onclick="copyProjectList()"
-            class="bg-slate-800 text-slate-100 px-3 py-1.5 rounded text-xs border border-slate-600 hover:bg-slate-700 btn-soft"
-          >
-            <i class="fa-solid fa-copy"></i> Copy List
+           <button onclick="toggleGridView()" id="gridViewBtn" class="w-8 h-8 rounded bg-slate-800 border border-slate-600 hover:bg-slate-700 text-slate-300 flex items-center justify-center btn-soft" title="Toggle Grid View">
+             <i class="fa-solid fa-border-all"></i>
+           </button>
+          <button onclick="copyProjectList()" class="bg-slate-800 text-slate-100 px-3 py-1.5 rounded text-xs border border-slate-600 hover:bg-slate-700 btn-soft">
+            <i class="fa-solid fa-copy"></i> List
           </button>
-          <button
-            onclick="completeAllItems()"
-            class="bg-emerald-900/50 text-emerald-400 px-3 py-1.5 rounded text-sm hover:bg-emerald-900 border border-emerald-700/50 btn-soft"
-          >
+          <button onclick="completeAllItems()" class="bg-emerald-900/50 text-emerald-400 px-3 py-1.5 rounded text-sm hover:bg-emerald-900 border border-emerald-700/50 btn-soft" title="Complete All">
             <i class="fa-solid fa-check-double"></i> All
           </button>
-          <button
-            onclick="closeModal('detailModal')"
-            class="w-8 h-8 rounded hover:bg-slate-700 text-slate-300 flex items-center justify-center btn-soft"
-          >
+          <button onclick="closeModal('detailModal')" class="w-8 h-8 rounded hover:bg-red-900/50 hover:text-red-400 text-slate-300 flex items-center justify-center btn-soft" title="Close (Esc)">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
       </div>
 
-      <!-- NOTES -->
-      <div
-        id="projectNoteArea"
-        class="hidden bg-yellow-900/20 p-3 border-b border-yellow-700/30"
-      >
-        <label class="text-xs text-yellow-500 font-bold"
-          >📝 Coordinates / Notes:</label
-        >
-        <textarea
-          id="projectNoteInput"
-          class="w-full bg-slate-950/50 text-white text-sm p-2 rounded border border-yellow-700/30 mt-1 h-20 font-mono"
-          placeholder="X: 100, Y: 64, Z: -200..."
-          onchange="saveNote()"
-        ></textarea>
+      <div id="projectNoteArea" class="hidden bg-yellow-900/20 p-3 border-b border-yellow-700/30">
+        <label class="text-xs text-yellow-500 font-bold">📝 Coordinates / Notes:</label>
+        <textarea id="projectNoteInput" class="w-full bg-slate-950/50 text-white text-sm p-2 rounded border border-yellow-700/30 mt-1 h-20 font-mono" placeholder="X: 100, Y: 64, Z: -200..." onchange="saveNote()"></textarea>
       </div>
 
-      <!-- LAYERS -->
-      <div
-        id="projectLayerArea"
-        class="hidden bg-sky-900/20 p-3 border-b border-sky-700/30"
-      >
+      <div id="projectLayerArea" class="hidden bg-sky-900/20 p-3 border-b border-sky-700/30">
         <label class="text-xs text-sky-400 font-bold">📚 Layer Planner</label>
-        <textarea
-          id="projectLayerInput"
-          class="w-full bg-slate-950/50 text-white text-sm p-2 rounded border border-sky-700/30 mt-1 h-20 font-mono"
-          placeholder="Y=64: ฐาน, Y=65: ผนัง..."
-          onchange="saveLayers()"
-        ></textarea>
+        <textarea id="projectLayerInput" class="w-full bg-slate-950/50 text-white text-sm p-2 rounded border border-sky-700/30 mt-1 h-20 font-mono" placeholder="Y=64: Base, Y=65: Walls..." onchange="saveLayers()"></textarea>
       </div>
 
-      <!-- ITEMS TOOLBAR -->
-      <div
-        class="px-4 pt-3 bg-[#0b1120] border-b border-slate-800 flex justify-between items-center text-xs text-slate-400"
-      >
+      <div class="px-4 pt-3 bg-[#0b1120] border-b border-slate-800 flex justify-between items-center text-xs text-slate-400">
         <div class="flex items-center gap-2">
           <span>Sort:</span>
-          <select
-            id="itemSortSelect"
-            onchange="changeItemSort(this.value)"
-            class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200"
-          >
+          <select id="itemSortSelect" onchange="changeItemSort(this.value)" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 cursor-pointer">
             <option value="priority">Priority</option>
             <option value="name">Name</option>
             <option value="amount">Amount</option>
@@ -422,55 +347,27 @@
             <option value="completed">Completed</option>
           </select>
         </div>
-        <div class="text-[11px] text-slate-500">
-          Double check items before you build ✨
+        <div class="text-[10px] text-slate-500 italic">
+          <i class="fa-solid fa-circle-info"></i> Click amount to toggle Stacks (64)
         </div>
       </div>
 
-      <!-- ITEMS -->
-      <div
-        class="flex-1 overflow-y-auto p-4 bg-[#0b1120]"
-        id="itemsContainer"
-      ></div>
+      <div class="flex-1 overflow-y-auto p-4 bg-[#0b1120]" id="itemsContainer"></div>
 
-      <!-- ADD ITEM -->
-      <div class="p-4 bg-slate-900/90 border-t border-slate-700 relative">
-        <form
-          onsubmit="event.preventDefault(); handleAddItem();"
-          class="flex gap-2 items-center"
-        >
+      <div class="p-4 bg-slate-900/90 border-t border-slate-700 relative z-10">
+        <form onsubmit="event.preventDefault(); handleAddItem();" class="flex gap-2 items-center">
           <div class="relative flex-1 group">
             <input type="hidden" id="newItemId" />
-            <input
-              type="text"
-              id="newItemName"
-              placeholder="เพิ่มวัสดุ... (เช่น Oak Log)"
-              class="w-full bg-slate-950 border border-slate-600 rounded p-3 text-white focus:border-[var(--accent-color)] outline-none"
-              oninput="searchItems(this.value)"
-            />
-            <div
-              id="suggestionBox"
-              class="hidden absolute bottom-full left-0 right-0 mb-2 bg-slate-800 border border-slate-600 rounded shadow-xl max-h-48 overflow-y-auto z-20"
-            ></div>
+            <input type="text" id="newItemName" placeholder="Add material... (e.g. Oak Log)" class="w-full bg-slate-950 border border-slate-600 rounded p-3 text-white focus:border-[var(--accent-color)] outline-none" oninput="searchItems(this.value)" />
+            <div id="suggestionBox" class="hidden absolute bottom-full left-0 right-0 mb-2 bg-slate-800 border border-slate-600 rounded shadow-xl max-h-48 overflow-y-auto z-20"></div>
           </div>
-          <select
-            id="newItemPriority"
-            class="bg-slate-950 border border-slate-600 rounded p-3 text-white outline-none w-24"
-          >
+          <select id="newItemPriority" class="bg-slate-950 border border-slate-600 rounded p-3 text-white outline-none w-24 cursor-pointer">
             <option value="normal">Normal</option>
             <option value="high">High 🔥</option>
             <option value="low">Low 💤</option>
           </select>
-          <input
-            type="number"
-            id="newItemAmount"
-            placeholder="#"
-            class="w-20 bg-slate-950 border border-slate-600 rounded p-3 text-center text-white outline-none"
-          />
-          <button
-            type="submit"
-            class="theme-bg px-5 py-3 rounded text-white font-bold shadow-lg hover:brightness-110 btn-soft"
-          >
+          <input type="number" id="newItemAmount" placeholder="#" class="w-20 bg-slate-950 border border-slate-600 rounded p-3 text-center text-white outline-none" />
+          <button type="submit" class="theme-bg px-5 py-3 rounded text-white font-bold shadow-lg hover:brightness-110 btn-soft" title="Add (Enter)">
             <i class="fa-solid fa-plus"></i>
           </button>
         </form>
@@ -478,143 +375,64 @@
     </div>
   </div>
 
-  <!-- NEW PROJECT MODAL -->
-  <div
-    id="projectModal"
-    class="fixed inset-0 bg-black/90 hidden items-center justify-center z-50 backdrop-blur-sm"
-  >
-    <div
-      class="glass-panel bg-slate-900 p-6 rounded-lg w-full max-w-md mx-4 shadow-2xl border border-slate-600 modal-panel transform scale-95 opacity-0 transition-all duration-150"
-    >
+  <div id="projectModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div class="glass-panel bg-slate-900 p-6 rounded-lg w-full max-w-md mx-4 shadow-2xl border border-slate-600 modal-panel transform scale-95 opacity-0 transition-all duration-150">
       <h3 class="text-xl font-bold mb-4 text-white">Create / Import Project</h3>
-      <input
-        type="text"
-        id="newProjectName"
-        placeholder="Project Name"
-        class="w-full bg-slate-950 border border-slate-600 rounded p-3 text-white mb-4 outline-none focus:border-[var(--accent-color)]"
-      />
+      <input type="text" id="newProjectName" placeholder="Project Name" class="w-full bg-slate-950 border border-slate-600 rounded p-3 text-white mb-4 outline-none focus:border-[var(--accent-color)]" />
       <div class="grid grid-cols-3 gap-2 mb-4">
-        <button
-          onclick="selectCategory('farm')"
-          class="cat-btn p-3 rounded border border-slate-700 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700 flex flex-col items-center gap-1 btn-soft"
-          id="cat-btn-farm"
-        >
-          <i class="fa-solid fa-wheat-awn text-xl"></i
-          ><span class="text-xs">Farm</span>
+        <button onclick="selectCategory('farm')" class="cat-btn p-3 rounded border border-slate-700 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700 flex flex-col items-center gap-1 btn-soft" id="cat-btn-farm">
+          <i class="fa-solid fa-wheat-awn text-xl"></i><span class="text-xs">Farm</span>
         </button>
-        <button
-          onclick="selectCategory('build')"
-          class="cat-btn p-3 rounded border border-slate-700 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700 flex flex-col items-center gap-1 btn-soft"
-          id="cat-btn-build"
-        >
-          <i class="fa-solid fa-hammer text-xl"></i
-          ><span class="text-xs">Build</span>
+        <button onclick="selectCategory('build')" class="cat-btn p-3 rounded border border-slate-700 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700 flex flex-col items-center gap-1 btn-soft" id="cat-btn-build">
+          <i class="fa-solid fa-hammer text-xl"></i><span class="text-xs">Build</span>
         </button>
-        <button
-          onclick="selectCategory('redstone')"
-          class="cat-btn p-3 rounded border border-slate-700 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700 flex flex-col items-center gap-1 btn-soft"
-          id="cat-btn-redstone"
-        >
-          <i class="fa-solid fa-microchip text-xl"></i
-          ><span class="text-xs">Redstone</span>
+        <button onclick="selectCategory('redstone')" class="cat-btn p-3 rounded border border-slate-700 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700 flex flex-col items-center gap-1 btn-soft" id="cat-btn-redstone">
+          <i class="fa-solid fa-microchip text-xl"></i><span class="text-xs">Redstone</span>
         </button>
       </div>
       <input type="hidden" id="selectedCat" value="build" />
 
-      <div
-        class="mt-2 mb-4 text-xs text-slate-400 border border-slate-700 rounded p-3 space-y-2"
-      >
-        <p
-          class="font-semibold text-slate-200 text-xs flex items-center gap-2"
-        >
+      <div class="mt-2 mb-4 text-xs text-slate-400 border border-slate-700 rounded p-3 space-y-2">
+        <p class="font-semibold text-slate-200 text-xs flex items-center gap-2">
           <i class="fa-solid fa-code-branch"></i> Import from CODE
         </p>
         <div class="flex gap-2">
-          <input
-            id="importCodeInput"
-            class="flex-1 bg-slate-950 border border-slate-600 rounded p-2 text-white text-xs"
-            placeholder="วาง Project ID / CODE ที่แชร์มา"
-          />
-          <button
-            onclick="importProjectFromCode()"
-            class="text-xs px-3 py-2 bg-slate-700 rounded text-white hover:bg-slate-600 border border-slate-500 btn-soft"
-          >
+          <input id="importCodeInput" class="flex-1 bg-slate-950 border border-slate-600 rounded p-2 text-white text-xs" placeholder="Paste Project ID here" />
+          <button onclick="importProjectFromCode()" class="text-xs px-3 py-2 bg-slate-700 rounded text-white hover:bg-slate-600 border border-slate-500 btn-soft">
             Import
           </button>
         </div>
       </div>
 
       <div class="flex justify-end gap-2">
-        <button
-          onclick="closeModal('projectModal')"
-          class="px-4 py-2 text-slate-400 hover:text-white btn-soft"
-        >
-          Cancel
-        </button>
-        <button
-          onclick="handleAddProject()"
-          class="theme-bg px-6 py-2 rounded text-white font-bold btn-soft"
-        >
-          Create
-        </button>
+        <button onclick="closeModal('projectModal')" class="px-4 py-2 text-slate-400 hover:text-white btn-soft">Cancel</button>
+        <button onclick="handleAddProject()" class="theme-bg px-6 py-2 rounded text-white font-bold btn-soft">Create</button>
       </div>
     </div>
   </div>
 
-  <!-- TRASH MODAL -->
-  <div
-    id="trashModal"
-    class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[60] backdrop-blur-sm"
-  >
-    <div
-      class="glass-panel bg-slate-900 rounded-lg w-full max-w-md mx-4 p-6 border border-red-900/50 modal-panel transform scale-95 opacity-0 transition-all duration-150"
-    >
-      <h3 class="text-xl font-bold text-red-400 mb-4">
+  <div id="trashModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[60] backdrop-blur-sm">
+    <div class="glass-panel bg-slate-900 rounded-lg w-full max-w-md mx-4 p-6 border border-red-900/50 modal-panel transform scale-95 opacity-0 transition-all duration-150">
+      <h3 class="text-xl font-bold text-red-400 mb-4 flex items-center gap-2">
         <i class="fa-solid fa-trash"></i> Recycle Bin
       </h3>
       <div id="trashList" class="space-y-2 max-h-60 overflow-y-auto mb-4"></div>
       <div class="flex justify-end">
-        <button
-          onclick="closeModal('trashModal')"
-          class="text-slate-400 hover:text-white btn-soft"
-        >
-          Close
-        </button>
+        <button onclick="closeModal('trashModal')" class="text-slate-400 hover:text-white btn-soft">Close</button>
       </div>
     </div>
   </div>
 
-  <!-- input สำหรับอัปโหลด texture -->
-  <input
-    type="file"
-    id="textureInput"
-    class="hidden"
-    accept="image/*"
-    onchange="handleTextureUpload(this)"
-  />
+  <input type="file" id="textureInput" class="hidden" accept="image/*" onchange="handleTextureUpload(this)" />
 
-  <!-- SCRIPT -->
   <script type="module">
-    import {
-      initializeApp
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import {
-      getDatabase,
-      ref,
-      push,
-      set,
-      remove,
-      update,
-      onValue,
-      get
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, push, set, remove, update, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // CONFIG
     const firebaseConfig = {
       apiKey: "AIzaSyAn2Pg3uFbIshFVpV1ysNprfIRdFMQ4ZWM",
       authDomain: "minecraft-deken-project.firebaseapp.com",
-      databaseURL:
-        "https://minecraft-deken-project-default-rtdb.asia-southeast1.firebasedatabase.app",
+      databaseURL: "https://minecraft-deken-project-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "minecraft-deken-project"
     };
 
@@ -626,17 +444,77 @@
     let trash = JSON.parse(localStorage.getItem("mcTrash") || "[]");
     let currentProjectId = null;
     let isCompact = localStorage.getItem("mcCompact") === "true";
+    let isGridView = localStorage.getItem("mcGridView") === "true"; // 12. Grid View State
+    let soundEnabled = localStorage.getItem("mcSound") === "true"; // 8. Sound State
     let currentCatFilter = "all";
     let currentSearch = "";
     let itemSort = "priority";
     let GLOBAL_ITEMS = [];
-
-    // textures (จาก DB + localStorage)
-    let customTextures = JSON.parse(
-      localStorage.getItem("mcCustomTextures") || "{}"
-    );
+    let customTextures = JSON.parse(localStorage.getItem("mcCustomTextures") || "{}");
     let serverTextures = {};
     let currentTextureItemId = null;
+    let showStacks = false; // 13. Stack Toggle State
+
+    // 14. Audio System (Synthesized - No External Files)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+      if (!soundEnabled) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      const now = audioCtx.currentTime;
+      if (type === 'click') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      } else if (type === 'success') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(500, now);
+        osc.frequency.setValueAtTime(1000, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      } else if (type === 'delete') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.linearRampToValueAtTime(50, now + 0.2);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.2);
+        osc.start(now);
+        osc.stop(now + 0.2);
+      }
+    }
+
+    // 15. Toast Function
+    window.showToast = (msg, type = 'info') => {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.style.borderLeftColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#8b5cf6';
+      t.innerHTML = `
+        <i class="fa-solid ${type === 'success' ? 'fa-check' : type === 'error' ? 'fa-triangle-exclamation' : 'fa-info-circle'}"></i>
+        <span>${msg}</span>
+      `;
+      c.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    };
+
+    // 11. Activity Log
+    function addLog(msg) {
+        const log = document.getElementById('activityLog');
+        const time = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit'});
+        log.innerHTML = `<p class="border-l-2 border-[var(--accent-color)] pl-2 mb-1"><span class="text-slate-400">[${time}]</span> <span class="text-slate-300">${msg}</span></p>` + log.innerHTML;
+        if(log.children.length > 20) log.lastElementChild.remove();
+    }
 
     const TEXTURE_BASES = [
       "https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/",
@@ -645,12 +523,9 @@
       "https://assets.mcasset.cloud/1.20.4/assets/minecraft/textures/block/"
     ];
 
-    // โหลด items list
     async function fetchItems() {
       try {
-        const res = await fetch(
-          "https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/pc/1.20/items.json"
-        );
+        const res = await fetch("https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/pc/1.20/items.json");
         const data = await res.json();
         GLOBAL_ITEMS = data.map((i) => ({ id: i.name, name: i.displayName }));
       } catch (e) {
@@ -659,27 +534,11 @@
     }
     fetchItems();
 
-    // fallback texture
     window.fallbackTexture = (img) => {
       const id = img.getAttribute("data-id");
-
-      if (id && serverTextures[id]) {
-        img.onerror = null;
-        img.src = serverTextures[id];
-        return;
-      }
-      if (id && customTextures[id]) {
-        img.onerror = null;
-        img.src = customTextures[id];
-        return;
-      }
-
-      if (!id) {
-        img.onerror = null;
-        img.src =
-          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAAHElEQVQ4T2NkoBAwUqifgYGB4T8jCqZFA1E0EwMAAJVbB2qtDq8zAAAAAElFTkSuQmCC";
-        return;
-      }
+      if (id && serverTextures[id]) { img.onerror = null; img.src = serverTextures[id]; return; }
+      if (id && customTextures[id]) { img.onerror = null; img.src = customTextures[id]; return; }
+      if (!id) { img.onerror = null; img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="; return; }
       let step = parseInt(img.getAttribute("data-step") || "0", 10);
       if (step < TEXTURE_BASES.length) {
         img.setAttribute("data-step", String(step + 1));
@@ -687,66 +546,102 @@
         img.src = TEXTURE_BASES[step] + id + ".png";
       } else {
         img.onerror = null;
-        img.src =
-          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAAHElEQVQ4T2NkoBAwUqifgYGB4T8jCqZFA1E0EwMAAJVbB2qtDq8zAAAAAElFTkSuQmCC";
+        img.src = "https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/barrier.png";
       }
     };
 
-    // subscribe projects
+    // Calculate Global XP
+    function updateXP() {
+        let total = 0, completed = 0;
+        projects.forEach(p => {
+            if(p.items) Object.values(p.items).forEach(i => {
+                total++;
+                if(i.completed) completed++;
+            });
+        });
+        const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+        document.getElementById('globalXpBar').style.width = pct + '%';
+        const lvl = Math.floor(completed / 5); // 1 Level per 5 items
+        document.getElementById('levelDisplay').innerText = `LVL ${lvl}`;
+        if(pct === 100 && total > 0) document.getElementById('levelDisplay').style.color = '#ffd700'; // Gold at 100%
+    }
+
     onValue(ref(db, "projects"), (snapshot) => {
       const data = snapshot.val();
       projects = [];
-      if (data)
-        Object.keys(data).forEach((key) =>
-          projects.push({ id: key, ...data[key] })
-        );
+      if (data) Object.keys(data).forEach((key) => projects.push({ id: key, ...data[key] }));
       projects.reverse();
       renderProjects();
       updateDashboard();
+      updateXP(); // Update XP
       if (currentProjectId) renderItems();
-
       document.getElementById("statusText").innerText = "Online";
-      document.getElementById("statusText").className =
-        "text-xs text-emerald-400";
-      document.getElementById("statusDot").className =
-        "w-2 h-2 rounded-full bg-emerald-500";
+      document.getElementById("statusText").className = "text-xs text-emerald-400";
+      document.getElementById("statusDot").className = "w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]";
     });
 
-    // subscribe textures (base64 dataURL ใน DB)
     onValue(ref(db, "textures"), (snap) => {
       serverTextures = snap.val() || {};
       if (currentProjectId) renderItems();
     });
 
+    // 7. Biome Switcher Logic
+    window.changeBiome = (val) => {
+        const body = document.body;
+        if(val === 'nether') {
+            body.style.backgroundImage = 'linear-gradient(rgba(40, 5, 5, 0.9), rgba(40, 5, 5, 0.95)), url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/netherrack.png")';
+            document.documentElement.style.setProperty('--accent-color', '#ef4444');
+        } else if (val === 'end') {
+             body.style.backgroundImage = 'linear-gradient(rgba(10, 5, 20, 0.9), rgba(10, 5, 20, 0.95)), url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/end_stone.png")';
+             document.documentElement.style.setProperty('--accent-color', '#d946ef');
+        } else {
+             body.style.backgroundImage = 'linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.95)), url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/dirt.png")';
+             document.documentElement.style.setProperty('--accent-color', '#8b5cf6');
+        }
+        playSound('click');
+    }
+
+    // 8. Sound Toggle
+    window.toggleSound = () => {
+        soundEnabled = !soundEnabled;
+        localStorage.setItem("mcSound", soundEnabled);
+        document.getElementById("soundBtn").innerHTML = soundEnabled ? '<i class="fa-solid fa-volume-high"></i>' : '<i class="fa-solid fa-volume-xmark text-slate-500"></i>';
+        showToast(`Sound ${soundEnabled ? 'Enabled' : 'Disabled'}`);
+    }
+
+    // 16. Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape') closeModal('detailModal') || closeModal('projectModal');
+        if((e.metaKey || e.ctrlKey) && e.key === 'b') { e.preventDefault(); backupData(); }
+        // Only if modal is open
+        if(!document.getElementById('detailModal').classList.contains('hidden')) {
+             if(e.key === 'n' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                 e.preventDefault();
+                 document.getElementById('newItemName').focus();
+             }
+        }
+    });
+
     function getProjectStats(p) {
       const items = p.items ? Object.values(p.items) : [];
-      let totalBlocks = 0;
-      let haveBlocks = 0;
+      let totalBlocks = 0, haveBlocks = 0;
       items.forEach((it) => {
         const amt = parseInt(it.amount) || 0;
         const cur = parseInt(it.current) || 0;
         totalBlocks += amt;
         haveBlocks += Math.min(cur, amt);
       });
-      return {
-        totalItems: items.length,
-        totalBlocks,
-        haveBlocks,
-        missingBlocks: Math.max(totalBlocks - haveBlocks, 0)
-      };
+      return { totalItems: items.length, totalBlocks, haveBlocks, missingBlocks: Math.max(totalBlocks - haveBlocks, 0) };
     }
 
     function updateDetailSummary() {
       const p = projects.find((x) => x.id === currentProjectId);
       const el = document.getElementById("detailSummary");
-      const codeEl = document.getElementById("detailCode");
-      if (!p || !el || !codeEl) return;
+      if (!p || !el) return;
       const stats = getProjectStats(p);
-      el.textContent = `Items: ${stats.totalItems} | Blocks: ${stats.haveBlocks}/${stats.totalBlocks} (ขาด ${stats.missingBlocks})`;
-      codeEl.textContent = p.id;
+      el.textContent = `Items: ${stats.totalItems} | Blocks: ${stats.haveBlocks}/${stats.totalBlocks} (Missing: ${stats.missingBlocks})`;
     }
 
-    // compact toggle
     window.toggleCompactMode = () => {
       isCompact = !isCompact;
       localStorage.setItem("mcCompact", isCompact);
@@ -754,23 +649,24 @@
         ? '<i class="fa-solid fa-toggle-on text-emerald-400 text-2xl"></i>'
         : '<i class="fa-solid fa-toggle-off text-2xl"></i>';
       renderProjects();
+      playSound('click');
     };
 
-    // trash
+    window.toggleGridView = () => {
+        isGridView = !isGridView;
+        localStorage.setItem("mcGridView", isGridView);
+        renderItems();
+        playSound('click');
+    }
+
     window.openTrash = () => {
       const l = document.getElementById("trashList");
-      l.innerHTML = trash.length
-        ? trash
-            .map(
-              (p, i) => `
+      l.innerHTML = trash.length ? trash.map((p, i) => `
         <div class="flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700">
           <span class="text-slate-300 text-sm">${p.name}</span>
-          <button onclick="restoreProject(${i})" class="text-green-400"><i class="fa-solid fa-rotate-left"></i></button>
-        </div>`
-            )
-            .join("")
-        : '<p class="text-slate-500 text-center">Empty</p>';
-      document.getElementById("trashModal").classList.replace("hidden", "flex");
+          <button onclick="restoreProject(${i})" class="text-green-400 hover:rotate-180 transition-transform duration-500"><i class="fa-solid fa-rotate-left"></i></button>
+        </div>`).join("") : '<p class="text-slate-500 text-center">Empty</p>';
+      openModal("trashModal");
     };
 
     window.restoreProject = (i) => {
@@ -778,62 +674,47 @@
       trash.splice(i, 1);
       localStorage.setItem("mcTrash", JSON.stringify(trash));
       openTrash();
+      playSound('success');
+      showToast('Project Restored!', 'success');
     };
 
     window.filterProjects = (v, t) => {
       if (t === "search") currentSearch = v.toLowerCase();
-      else currentCatFilter = v;
+      else { currentCatFilter = v; playSound('click'); }
       renderProjects();
     };
 
     function updateDashboard() {
       const total = projects.length;
-      const completed = projects.reduce(
-        (a, p) =>
-          a +
-          (p.items ? Object.values(p.items).filter((i) => i.completed).length : 0),
-        0
-      );
-      const allItems = projects.reduce(
-        (a, p) => a + (p.items ? Object.keys(p.items).length : 0),
-        0
-      );
+      const completed = projects.reduce((a, p) => a + (p.items ? Object.values(p.items).filter((i) => i.completed).length : 0), 0);
+      const allItems = projects.reduce((a, p) => a + (p.items ? Object.keys(p.items).length : 0), 0);
       document.getElementById("totalProjects").innerText = total;
-      document.getElementById("completionRate").innerText = allItems
-        ? Math.round((completed / allItems) * 100) + "%"
-        : "0%";
+      document.getElementById("completionRate").innerText = allItems ? Math.round((completed / allItems) * 100) + "%" : "0%";
+      // Random Tip
+      const tips = ["Don't dig straight down!", "Creepers hate cats.", "Gold is faster but breaks easily.", "Water bucket saves lives.", "F3 to see coords."];
+      document.getElementById("randomTip").innerText = '"' + tips[Math.floor(Math.random()*tips.length)] + '"';
     }
 
     function hasItemMatch(p, q) {
       if (!p.items) return false;
-      return Object.values(p.items).some((it) =>
-        (it.name || "").toLowerCase().includes(q)
-      );
+      return Object.values(p.items).some((it) => (it.name || "").toLowerCase().includes(q));
     }
 
     function renderProjects() {
       const container = document.getElementById("projectList");
       container.innerHTML = "";
-      const filtered = projects.filter(
-        (p) =>
+      const filtered = projects.filter((p) =>
           (currentCatFilter === "all" || p.category === currentCatFilter) &&
-          (!currentSearch ||
-            p.name.toLowerCase().includes(currentSearch) ||
-            hasItemMatch(p, currentSearch))
+          (!currentSearch || p.name.toLowerCase().includes(currentSearch) || hasItemMatch(p, currentSearch))
       );
 
-      if (isCompact) container.classList.add("grid-cols-1");
-      else container.classList.remove("grid-cols-1");
+      if (isCompact) container.classList.add("grid-cols-1"); else container.classList.remove("grid-cols-1");
 
       filtered.forEach((p) => {
         const items = p.items ? Object.values(p.items) : [];
         const done = items.filter((i) => i.completed).length;
         const prog = items.length ? Math.round((done / items.length) * 100) : 0;
-        const icon = {
-          farm: "fa-wheat-awn text-emerald-400",
-          build: "fa-hammer text-blue-400",
-          redstone: "fa-microchip text-red-400"
-        }[p.category || "build"];
+        const icon = { farm: "fa-wheat-awn text-emerald-400", build: "fa-hammer text-blue-400", redstone: "fa-microchip text-red-400" }[p.category || "build"];
 
         if (isCompact) {
           container.innerHTML += `
@@ -844,7 +725,7 @@
             </div>
             <div class="flex items-center gap-4">
               <div class="w-24 bg-slate-900 rounded-full h-1.5">
-                <div class="theme-bg h-full rounded-full" style="width:${prog}%"></div>
+                <div class="theme-bg h-full rounded-full transition-all duration-500" style="width:${prog}%"></div>
               </div>
               <span class="text-xs text-slate-400">${done}/${items.length}</span>
             </div>
@@ -854,19 +735,19 @@
           <div onclick="openProjectDetails('${p.id}')" class="glass-panel anim-card hover-pop p-5 rounded-lg cursor-pointer hover:bg-slate-800 hover:border-[var(--accent-color)] transition-all relative">
             <div class="flex justify-between items-start mb-4">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:conic-gradient(var(--accent-color) ${
-                  prog * 3.6
-                }deg,#1e293b 0deg)">
-                  <div class="w-8 h-8 bg-slate-900 rounded-full flex items-center justify-center text-[10px] font-bold">${prog}%</div>
+                <div class="w-10 h-10 rounded-full flex items-center justify-center relative bg-slate-900">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1e293b" stroke-width="4" />
+                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--accent-color)" stroke-width="4" stroke-dasharray="${prog}, 100" class="transition-all duration-700" />
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center text-[9px] font-bold">${prog}%</div>
                 </div>
                 <div>
                   <h3 class="font-bold text-lg text-white truncate max-w-[140px]">${p.name}</h3>
                   <span class="text-[10px] uppercase text-slate-500 font-bold bg-slate-900 px-2 py-0.5 rounded">${p.category}</span>
                 </div>
               </div>
-              <button onclick="deleteProject('${
-                p.id
-              }',event)" class="text-slate-600 hover:text-red-500 btn-soft"><i class="fa-solid fa-trash"></i></button>
+              <button onclick="deleteProject('${p.id}',event)" class="text-slate-600 hover:text-red-500 btn-soft p-2"><i class="fa-solid fa-trash"></i></button>
             </div>
             <div class="flex justify-between text-xs text-slate-400 mt-2 border-t border-slate-700/50 pt-2">
               <span><i class="fa-solid fa-box"></i> ${items.length} Items</span>
@@ -887,53 +768,51 @@
       document.getElementById("projectLayerInput").value = p.layers || "";
       document.getElementById("projectNoteArea").classList.add("hidden");
       document.getElementById("projectLayerArea").classList.add("hidden");
-      const icons = {
-        farm: "fa-wheat-awn text-emerald-400",
-        build: "fa-hammer text-blue-400",
-        redstone: "fa-microchip text-red-400"
-      };
-      document.getElementById("projectIconHeader").innerHTML = `<i class="fa-solid ${
-        icons[p.category]
-      }"></i>`;
+      const icons = { farm: "fa-wheat-awn text-emerald-400", build: "fa-hammer text-blue-400", redstone: "fa-microchip text-red-400" };
+      document.getElementById("projectIconHeader").innerHTML = `<i class="fa-solid ${icons[p.category]}"></i>`;
       renderItems();
       updateDetailSummary();
       openModal("detailModal");
+      playSound('click');
     };
 
-    window.changeItemSort = (mode) => {
-      itemSort = mode;
-      renderItems();
-    };
+    window.changeItemSort = (mode) => { itemSort = mode; renderItems(); playSound('click'); };
+
+    // Format Number (Stacks)
+    function formatAmount(val) {
+        if(!showStacks) return val;
+        const stacks = Math.floor(val / 64);
+        const rem = val % 64;
+        if(stacks > 0) return `${stacks}s + ${rem}`;
+        return val;
+    }
+
+    // Toggle Stack Display
+    window.toggleStackDisplay = (el) => {
+        showStacks = !showStacks;
+        renderItems();
+        playSound('click');
+    }
 
     window.renderItems = () => {
       const container = document.getElementById("itemsContainer");
       const p = projects.find((x) => x.id === currentProjectId);
       container.innerHTML = "";
+      container.className = isGridView ? "flex-1 overflow-y-auto p-4 bg-[#0b1120] grid-view-mode" : "flex-1 overflow-y-auto p-4 bg-[#0b1120]";
+      
       if (!p || !p.items) {
-        container.innerHTML =
-          '<p class="text-slate-500 text-center mt-10">Add items to start</p>';
+        container.innerHTML = '<div class="col-span-full flex flex-col items-center justify-center mt-10 text-slate-500 gap-2"><i class="fa-solid fa-cube text-3xl opacity-50"></i><p>No items yet</p></div>';
         updateDetailSummary();
         return;
       }
       let items = Object.keys(p.items).map((k) => ({ id: k, ...p.items[k] }));
 
       items = items.sort((a, b) => {
-        const pr = (x) =>
-          x.priority === "high" ? 0 : x.priority === "normal" ? 1 : 2;
-        if (itemSort === "name")
-          return (a.name || "").localeCompare(b.name || "");
-        if (itemSort === "amount")
-          return (parseInt(b.amount) || 0) - (parseInt(a.amount) || 0);
-        if (itemSort === "progress") {
-          const pa =
-            (parseInt(a.current) || 0) / (parseInt(a.amount) || 1);
-          const pb =
-            (parseInt(b.current) || 0) / (parseInt(b.amount) || 1);
-          return pb - pa;
-        }
-        if (itemSort === "completed") {
-          return a.completed === b.completed ? 0 : a.completed ? 1 : -1;
-        }
+        const pr = (x) => x.priority === "high" ? 0 : x.priority === "normal" ? 1 : 2;
+        if (itemSort === "name") return (a.name || "").localeCompare(b.name || "");
+        if (itemSort === "amount") return (parseInt(b.amount) || 0) - (parseInt(a.amount) || 0);
+        if (itemSort === "progress") return ((parseInt(b.current)||0)/(parseInt(b.amount)||1)) - ((parseInt(a.current)||0)/(parseInt(a.amount)||1));
+        if (itemSort === "completed") return a.completed === b.completed ? 0 : a.completed ? 1 : -1;
         const d = pr(a) - pr(b);
         if (d !== 0) return d;
         return (a.name || "").localeCompare(b.name || "");
@@ -942,171 +821,98 @@
       let allDone = true;
       items.forEach((item) => {
         if (!item.completed) allDone = false;
-        const pct = Math.min(
-          100,
-          Math.round(
-            ((parseInt(item.current) || 0) /
-              (parseInt(item.amount) || 1)) *
-              100
-          )
-        );
-        const badge =
-          item.priority === "high"
-            ? '<span class="text-[10px] bg-red-900/50 text-red-400 px-1 rounded ml-2">HI</span>'
-            : "";
+        const pct = Math.min(100, Math.round(((parseInt(item.current) || 0) / (parseInt(item.amount) || 1)) * 100));
+        const badge = item.priority === "high" ? '<span class="item-badge text-[9px] bg-red-900 text-red-300 px-1 rounded ml-1 animate-pulse">🔥</span>' : "";
+        const enchantClass = item.priority === "high" && !item.completed ? "enchanted" : ""; // Enchant Effect
 
-        const texSrc = serverTextures[item.itemId]
-          ? serverTextures[item.itemId]
-          : customTextures[item.itemId]
-          ? customTextures[item.itemId]
-          : `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${item.itemId}.png`;
+        const texSrc = serverTextures[item.itemId] ? serverTextures[item.itemId] : customTextures[item.itemId] ? customTextures[item.itemId] : `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${item.itemId}.png`;
+
+        // Render HTML based on view mode
+        const displayedAmount = formatAmount(parseInt(item.amount) || 0);
 
         container.innerHTML += `
-        <div class="relative overflow-hidden rounded mb-2 border transition-all ${
-          item.completed
-            ? "border-emerald-900/50 bg-emerald-900/10 opacity-60"
-            : "border-slate-700 bg-slate-800/40"
-        }">
-          <div class="absolute top-0 left-0 bg-[var(--accent-color)] opacity-10 h-full transition-all" style="width:${pct}%"></div>
+        <div class="item-card relative overflow-hidden rounded mb-2 border transition-all hover:bg-slate-800 ${enchantClass} ${item.completed ? "border-emerald-900/50 bg-emerald-900/10 opacity-60 grayscale" : "border-slate-700 bg-slate-800/40"}">
+          <div class="absolute top-0 left-0 bg-[var(--accent-color)] opacity-10 h-full transition-all duration-700" style="width:${pct}%"></div>
+          
           <div class="relative flex items-center gap-3 p-3">
-            <button onclick="toggleItem('${item.id}',${item.completed},${
-          item.amount
-        })" class="w-6 h-6 rounded border flex items-center justify-center ${
-          item.completed
-            ? "bg-emerald-500 border-emerald-500"
-            : "border-slate-600"
-        }">
-              ${
-                item.completed
-                  ? '<i class="fa-solid fa-check text-xs text-white"></i>'
-                  : ""
-              }
+            <button onclick="toggleItem('${item.id}',${item.completed},${item.amount})" class="w-6 h-6 rounded border flex items-center justify-center shrink-0 transition-colors ${item.completed ? "bg-emerald-500 border-emerald-500 hover:bg-emerald-600" : "border-slate-600 hover:border-slate-400"}">
+              ${item.completed ? '<i class="fa-solid fa-check text-xs text-white"></i>' : ''}
             </button>
-            <img src="${texSrc}"
-              class="w-8 h-8 pixel-art cursor-pointer"
-              title="คลิกเพื่ออัปโหลดรูปสำหรับไอเท็มนี้ (แชร์ให้ทุกคน)"
-              data-id="${item.itemId}" data-step="0"
-              onclick="openTextureUpload('${item.itemId}')"
-              onerror="fallbackTexture(this)">
-            <div class="flex-1 min-w-0">
+            
+            <img src="${texSrc}" class="w-8 h-8 pixel-art cursor-pointer hover:scale-110 transition-transform" title="Change Texture" data-id="${item.itemId}" onclick="openTextureUpload('${item.itemId}')" onerror="fallbackTexture(this)">
+            
+            <div class="flex-1 min-w-0 flex flex-col justify-center">
               <div class="flex items-center">
-                <p class="text-sm font-medium text-slate-200 truncate">${
-                  item.name
-                }</p>
+                <p class="text-sm font-medium text-slate-200 truncate cursor-help" title="${item.name}">${item.name}</p>
                 ${badge}
               </div>
-              <div class="w-full bg-slate-700/50 h-1 rounded-full mt-1">
-                <div class="theme-bg h-full transition-all" style="width:${pct}%"></div>
+              <div class="w-full bg-slate-700/50 h-1 rounded-full mt-1 item-details">
+                <div class="theme-bg h-full transition-all duration-500" style="width:${pct}%"></div>
               </div>
             </div>
-            <div class="flex items-center gap-1 bg-slate-950/50 rounded p-1 border border-slate-700">
-              <input type="number" value="${
-                item.current || 0
-              }" onchange="updateProgress('${item.id}',this.value,${
-          item.amount
-        })" class="w-12 bg-transparent text-right text-white outline-none font-mono text-sm">
-              <span class="text-slate-500 text-xs">/${item.amount}</span>
+            
+            <div class="flex items-center gap-1 bg-slate-950/50 rounded p-1 border border-slate-700 item-details">
+              <input type="number" value="${item.current || 0}" onchange="updateProgress('${item.id}',this.value,${item.amount})" class="w-12 bg-transparent text-right text-white outline-none font-mono text-sm">
+              <span class="text-slate-500 text-xs cursor-pointer select-none" onclick="toggleStackDisplay()">${showStacks ? 'stk' : '/' + displayedAmount}</span>
             </div>
-            <button onclick="removeItem('${
-              item.id
-            }')" class="text-slate-600 hover:text-red-400 px-2"><i class="fa-solid fa-trash-can"></i></button>
+            
+            <button onclick="removeItem('${item.id}')" class="text-slate-600 hover:text-red-400 px-2 item-details"><i class="fa-solid fa-trash-can"></i></button>
           </div>
         </div>`;
       });
-      if (allDone && items.length > 0)
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      if (allDone && items.length > 0) confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, colors: ['#10b981', '#34d399'] });
       updateDetailSummary();
     };
 
-    // add item optimistic
     window.handleAddItem = () => {
       const name = document.getElementById("newItemName").value;
       const amount = document.getElementById("newItemAmount").value || 1;
       const priority = document.getElementById("newItemPriority").value;
-      const id =
-        document.getElementById("newItemId").value ||
-        name.toLowerCase().replace(/ /g, "_");
+      const id = document.getElementById("newItemId").value || name.toLowerCase().replace(/ /g, "_");
+      
       if (name && currentProjectId) {
-        const tempId = "temp_" + Date.now();
-        const newItem = {
-          name,
-          itemId: id,
-          amount,
-          current: 0,
-          completed: false,
-          priority
-        };
-        const p = projects.find((x) => x.id === currentProjectId);
-        if (!p.items) p.items = {};
-        p.items[tempId] = newItem;
-        renderItems();
+        playSound('click');
+        const newItem = { name, itemId: id, amount, current: 0, completed: false, priority };
         push(ref(db, `projects/${currentProjectId}/items`), newItem);
         document.getElementById("newItemName").value = "";
         document.getElementById("newItemAmount").value = "";
         document.getElementById("newItemName").focus();
         document.getElementById("newItemId").value = "";
+        addLog(`Added item: ${name}`);
       }
     };
 
     window.toggleItem = (id, done, target) => {
       const p = projects.find((x) => x.id === currentProjectId);
-      if (p && p.items[id]) {
-        p.items[id].completed = !done;
-        p.items[id].current = !done ? target : 0;
-        renderItems();
+      playSound(done ? 'click' : 'success'); // Sound logic
+      if(!done) { 
+        confetti({ particleCount: 30, spread: 40, origin: { y: 0.8 }, ticks: 100, gravity: 0.8, scalar: 0.8 }); 
+        showToast('Item Completed!', 'success');
       }
-      update(ref(db, `projects/${currentProjectId}/items/${id}`), {
-        completed: !done,
-        current: !done ? target : 0
-      });
+      update(ref(db, `projects/${currentProjectId}/items/${id}`), { completed: !done, current: !done ? target : 0 });
     };
 
     window.updateProgress = (id, val, target) => {
       const v = Math.min(target, Math.max(0, parseInt(val) || 0));
-      const p = projects.find((x) => x.id === currentProjectId);
-      if (p && p.items[id]) {
-        p.items[id].current = v;
-        p.items[id].completed = v >= target;
-      }
-      update(ref(db, `projects/${currentProjectId}/items/${id}`), {
-        current: v,
-        completed: v >= target
-      });
+      update(ref(db, `projects/${currentProjectId}/items/${id}`), { current: v, completed: v >= target });
     };
 
     window.removeItem = (id) => {
-      const p = projects.find((x) => x.id === currentProjectId);
-      if (p && p.items[id]) {
-        delete p.items[id];
-        renderItems();
+      if(confirm('Delete this item?')) {
+          playSound('delete');
+          remove(ref(db, `projects/${currentProjectId}/items/${id}`));
       }
-      remove(ref(db, `projects/${currentProjectId}/items/${id}`));
     };
 
-    // notes / layers
-    window.toggleNote = () =>
-      document.getElementById("projectNoteArea").classList.toggle("hidden");
-    window.toggleLayers = () =>
-      document.getElementById("projectLayerArea").classList.toggle("hidden");
+    window.toggleNote = () => document.getElementById("projectNoteArea").classList.toggle("hidden");
+    window.toggleLayers = () => document.getElementById("projectLayerArea").classList.toggle("hidden");
+    
+    window.saveNote = () => update(ref(db, `projects/${currentProjectId}`), { notes: document.getElementById("projectNoteInput").value });
+    window.saveLayers = () => update(ref(db, `projects/${currentProjectId}`), { layers: document.getElementById("projectLayerInput").value });
 
-    window.saveNote = () =>
-      update(ref(db, `projects/${currentProjectId}`), {
-        notes: document.getElementById("projectNoteInput").value
-      });
-    window.saveLayers = () =>
-      update(ref(db, `projects/${currentProjectId}`), {
-        layers: document.getElementById("projectLayerInput").value
-      });
-
-    // share code & list
     window.copyProjectCode = () => {
       if (!currentProjectId) return;
-      const text = currentProjectId;
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(() => alert("คัดลอก CODE แล้ว"));
-      } else {
-        prompt("คัดลอก CODE นี้:", text);
-      }
+      navigator.clipboard.writeText(currentProjectId).then(() => showToast("Project ID Copied!"));
     };
 
     window.importProjectFromCode = async () => {
@@ -1114,157 +920,100 @@
       if (!code) return;
       try {
         const snap = await get(ref(db, "projects/" + code));
-        if (!snap.exists()) {
-          alert("ไม่พบ project code นี้");
-          return;
-        }
+        if (!snap.exists()) { showToast("Invalid Project Code", "error"); return; }
         const data = snap.val();
-        const newRef = push(ref(db, "projects"), {
-          name: (data.name || "Imported Project") + " (copy)",
-          category: data.category || "build",
-          timestamp: Date.now(),
-          notes: data.notes || "",
-          layers: data.layers || ""
-        });
-        const newId = newRef.key;
-        if (data.items) {
-          Object.values(data.items).forEach((it) => {
-            push(ref(db, `projects/${newId}/items`), {
-              name: it.name,
-              itemId: it.itemId,
-              amount: it.amount,
-              current: 0,
-              completed: false,
-              priority: it.priority || "normal"
-            });
-          });
-        }
-        alert("Import แล้ว สร้างโปรเจกต์ใหม่เรียบร้อย");
-      } catch (err) {
-        console.error(err);
-        alert("มีปัญหาในการ import project");
-      }
+        push(ref(db, "projects"), { ...data, name: (data.name) + " (Imported)", timestamp: Date.now() });
+        showToast("Project Imported Successfully!", "success");
+        closeModal("projectModal");
+      } catch (err) { showToast("Import Failed", "error"); }
     };
 
     window.copyProjectList = () => {
       const p = projects.find((x) => x.id === currentProjectId);
       if (!p || !p.items) return;
-      const lines = Object.values(p.items).map(
-        (it) => `${it.amount || 0} x ${it.name}`
-      );
-      const text = `${p.name} materials:\n` + lines.join("\n");
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard
-          .writeText(text)
-          .then(() => alert("คัดลอก list แล้ว"));
-      } else {
-        prompt("คัดลอกข้อความนี้ด้วยตัวเอง:", text);
-      }
+      const lines = Object.values(p.items).map((it) => `${it.completed ? '[x]' : '[ ]'} ${it.amount} x ${it.name}`);
+      navigator.clipboard.writeText(`${p.name} List:\n` + lines.join("\n")).then(() => showToast("List Copied to Clipboard!"));
     };
 
-    // texture upload ผ่าน Realtime DB (base64)
+    // 10. CSV Export
+    window.exportToCSV = () => {
+        let csvContent = "data:text/csv;charset=utf-8,Project,Item,Amount,Status\n";
+        projects.forEach(p => {
+            if(p.items) {
+                Object.values(p.items).forEach(i => {
+                    csvContent += `${p.name},${i.name},${i.amount},${i.completed ? 'Done' : 'Pending'}\n`;
+                });
+            }
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "minecraft_projects.csv");
+        document.body.appendChild(link);
+        link.click();
+        showToast("CSV Exported!");
+    }
+
     window.openTextureUpload = (itemId) => {
       currentTextureItemId = itemId;
-      const input = document.getElementById("textureInput");
-      if (input) input.click();
+      document.getElementById("textureInput").click();
     };
 
     window.handleTextureUpload = (input) => {
       const file = input.files[0];
-      if (!file || !currentTextureItemId) {
-        input.value = "";
-        return;
-      }
-
+      if (!file || !currentTextureItemId) return;
       const itemId = currentTextureItemId;
-      currentTextureItemId = null;
-
       const reader = new FileReader();
       reader.onload = (e) => {
-        const dataUrl = e.target.result;
-
-        set(ref(db, "textures/" + itemId), dataUrl)
-          .then(() => {
-            serverTextures[itemId] = dataUrl;
-            customTextures[itemId] = dataUrl;
-            localStorage.setItem(
-              "mcCustomTextures",
-              JSON.stringify(customTextures)
-            );
-            if (currentProjectId) renderItems();
-            alert("อัปโหลด texture สำเร็จ: " + itemId);
-          })
-          .catch((err) => {
-            console.error(err);
-            alert("อัปโหลดไม่สำเร็จ: " + err.message);
-          })
-          .finally(() => {
-            input.value = "";
-          });
+        set(ref(db, "textures/" + itemId), e.target.result).then(() => {
+            serverTextures[itemId] = e.target.result;
+            showToast("Texture Uploaded!", "success");
+        });
+        input.value = "";
       };
       reader.readAsDataURL(file);
     };
 
-    // project CRUD
     window.deleteProject = (id, e) => {
       e.stopPropagation();
+      playSound('delete');
       const p = projects.find((x) => x.id === id);
-      if (confirm("Move to trash?")) {
+      if (confirm(`Delete "${p.name}"?`)) {
         trash.push(p);
         localStorage.setItem("mcTrash", JSON.stringify(trash));
         remove(ref(db, `projects/${id}`));
+        addLog(`Deleted Project: ${p.name}`);
+        showToast("Project moved to Recycle Bin");
       }
     };
 
     window.selectCategory = (cat) => {
-      document
-        .querySelectorAll(".cat-btn")
-        .forEach((b) =>
-          b.classList.remove("bg-slate-700", "text-white")
-        );
-      document
-        .getElementById(`cat-btn-${cat}`)
-        .classList.add("bg-slate-700", "text-white");
+      document.querySelectorAll(".cat-btn").forEach((b) => b.classList.remove("bg-slate-700", "text-white"));
+      document.getElementById(`cat-btn-${cat}`).classList.add("bg-slate-700", "text-white");
       document.getElementById("selectedCat").value = cat;
+      playSound('click');
     };
 
     window.handleAddProject = () => {
       const name = document.getElementById("newProjectName").value;
       if (name) {
-        push(ref(db, "projects"), {
-          name,
-          category: document.getElementById("selectedCat").value,
-          timestamp: Date.now()
-        });
+        playSound('success');
+        push(ref(db, "projects"), { name, category: document.getElementById("selectedCat").value, timestamp: Date.now() });
         closeModal("projectModal");
         document.getElementById("newProjectName").value = "";
+        addLog(`Created Project: ${name}`);
       }
     };
 
-    // search items / suggestions
     window.searchItems = (val) => {
       const box = document.getElementById("suggestionBox");
-      if (!val) {
-        box.classList.add("hidden");
-        return;
-      }
-      const matches = GLOBAL_ITEMS.filter((i) =>
-        i.name.toLowerCase().includes(val.toLowerCase())
-      ).slice(0, 10);
-      box.innerHTML = matches
-        .map((i) => {
-          const texSrc = serverTextures[i.id]
-            ? serverTextures[i.id]
-            : customTextures[i.id]
-            ? customTextures[i.id]
-            : `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${i.id}.png`;
-          return `
+      if (!val) { box.classList.add("hidden"); return; }
+      const matches = GLOBAL_ITEMS.filter((i) => i.name.toLowerCase().includes(val.toLowerCase())).slice(0, 10);
+      box.innerHTML = matches.map((i) => `
         <div class="p-2 hover:bg-slate-700 cursor-pointer flex items-center gap-2" onclick="selectSearchItem('${i.name}','${i.id}')">
-          <img src="${texSrc}" class="w-4 h-4 pixel-art" data-id="${i.id}" data-step="0" onerror="fallbackTexture(this)">
+          <img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${i.id}.png" class="w-4 h-4 pixel-art" onerror="fallbackTexture(this)">
           ${i.name}
-        </div>`;
-        })
-        .join("");
+        </div>`).join("");
       box.classList.remove("hidden");
     };
 
@@ -1272,49 +1021,36 @@
       document.getElementById("newItemName").value = n;
       document.getElementById("newItemId").value = i;
       document.getElementById("suggestionBox").classList.add("hidden");
+      document.getElementById("newItemAmount").focus();
     };
 
-    // MODALS (มี animation)
     window.openModal = (id) => {
       const modal = document.getElementById(id);
       if (!modal) return;
-
       modal.classList.remove("hidden");
       modal.classList.add("flex");
-
-      const panel = modal.querySelector(".modal-panel");
-      if (panel) {
+      playSound('click');
+      setTimeout(() => {
+        const panel = modal.querySelector(".modal-panel");
         panel.classList.remove("opacity-0", "scale-95");
         panel.classList.add("opacity-100", "scale-100");
-      }
+      }, 10);
     };
 
     window.closeModal = (id) => {
       const modal = document.getElementById(id);
-      if (!modal) return;
-
       const panel = modal.querySelector(".modal-panel");
-      if (panel) {
-        panel.classList.remove("opacity-100", "scale-100");
-        panel.classList.add("opacity-0", "scale-95");
-        setTimeout(() => {
-          modal.classList.remove("flex");
-          modal.classList.add("hidden");
-        }, 150);
-      } else {
-        modal.classList.remove("flex");
-        modal.classList.add("hidden");
-      }
+      panel.classList.remove("opacity-100", "scale-100");
+      panel.classList.add("opacity-0", "scale-95");
+      setTimeout(() => { modal.classList.remove("flex"); modal.classList.add("hidden"); }, 150);
     };
 
-    // backup / restore
     window.backupData = () => {
       const a = document.createElement("a");
-      a.href =
-        "data:text/json;charset=utf-8," +
-        encodeURIComponent(JSON.stringify(projects));
-      a.download = "mc_backup.json";
+      a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects));
+      a.download = `mc_backup_${new Date().toISOString().slice(0,10)}.json`;
       a.click();
+      showToast("Backup Downloaded!", "success");
     };
 
     window.restoreData = (i) => {
@@ -1322,24 +1058,17 @@
       if (!f) return;
       const r = new FileReader();
       r.onload = (e) => {
-        JSON.parse(e.target.result).forEach((p) => {
-          delete p.id;
-          push(ref(db, "projects"), p);
-        });
-        alert("Done");
+        JSON.parse(e.target.result).forEach((p) => { delete p.id; push(ref(db, "projects"), p); });
+        showToast("Data Restored!", "success");
       };
       r.readAsText(f);
     };
 
     window.completeAllItems = () => {
-      if (confirm("Complete all?")) {
+      if (confirm("Complete all items in this project?")) {
+        playSound('success');
         const p = projects.find((x) => x.id === currentProjectId);
-        Object.keys(p.items).forEach((k) =>
-          update(ref(db, `projects/${currentProjectId}/items/${k}`), {
-            completed: true,
-            current: p.items[k].amount
-          })
-        );
+        Object.keys(p.items).forEach((k) => update(ref(db, `projects/${currentProjectId}/items/${k}`), { completed: true, current: p.items[k].amount }));
       }
     };
   </script>
