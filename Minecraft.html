@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minecraft Manager (Realtime)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ["Kanit", "sans-serif"] },
+          colors: { bgDark: "#0f172a", cardDark: "#1e293b" }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      --accent-color: #8b5cf6;
+    }
+
+    body {
+      background-color: #020617;
+      background-image: linear-gradient(
+          rgba(15, 23, 42, 0.96),
+          rgba(15, 23, 42, 0.98)
+        ),
+        url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/deepslate_top.png");
+      background-size: cover, 64px;
+      background-attachment: fixed;
+      color: white;
+      image-rendering: pixelated;
+    }
+
+    /* panel เบาเครื่อง (ไม่มี blur หนัก ๆ) */
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.85);
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #020617;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 999px;
+    }
+
+    .pixel-art {
+      image-rendering: pixelated;
+    }
+
+    .theme-bg {
+      background-color: var(--accent-color);
+    }
+    .theme-text {
+      color: var(--accent-color);
+    }
+
+    /* การ์ดเด้งตอนเข้าหน้า */
+    .anim-card {
+      animation: cardIn 260ms ease-out;
+      will-change: transform, opacity;
+    }
+    @keyframes cardIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* hover ให้เด้งนิด ๆ */
+    .hover-pop {
+      transition:
+        transform 150ms ease,
+        box-shadow 150ms ease,
+        border-color 150ms ease,
+        background-color 150ms ease;
+      will-change: transform, box-shadow;
+    }
+    .hover-pop:hover {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.9);
+      border-color: rgba(129, 140, 248, 0.9);
+    }
+
+    /* ปุ่มเด้งเบา ๆ */
+    .btn-soft {
+      transition:
+        transform 130ms ease,
+        box-shadow 130ms ease,
+        background-color 130ms ease,
+        color 130ms ease;
+      will-change: transform, box-shadow;
+    }
+    .btn-soft:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.8);
+    }
+    .btn-soft:active {
+      transform: translateY(0) scale(0.97);
+      box-shadow: none;
+    }
+
+    /* panel ของ modal ใช้กับ animation เปิด/ปิด */
+    .modal-panel {
+      transform-origin: center;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen p-4 md:p-8 font-sans transition-colors duration-500">
+  <!-- HEADER -->
+  <header
+    class="max-w-7xl mx-auto mb-6 flex flex-col xl:flex-row justify-between items-center gap-4"
+  >
+    <div>
+      <h1 class="text-4xl font-bold text-white drop-shadow-md">
+        MC <span class="theme-text">Manager</span>
+        <span
+          class="text-xs bg-emerald-500 text-black px-2 py-0.5 rounded font-bold"
+          >SPEED</span
+        >
+      </h1>
+      <p class="text-slate-400 text-sm mt-1">
+        Realtime &amp; Optimistic UI (1.21+)
+      </p>
+    </div>
+
+    <!-- STATUS + BACKUP -->
+    <div class="flex items-center gap-4">
+      <div class="flex flex-col items-end text-xs text-slate-400 mr-2">
+        <div class="flex items-center gap-2">
+          <span id="statusDot" class="w-2 h-2 rounded-full bg-red-500"></span>
+          <span id="statusText">Connecting...</span>
+        </div>
+        <span class="text-[10px] text-slate-500">Firebase Realtime</span>
+      </div>
+
+      <button
+        onclick="backupData()"
+        class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded btn-soft"
+        title="Backup"
+      >
+        <i class="fa-solid fa-download"></i>
+      </button>
+      <button
+        onclick="document.getElementById('fileInput').click()"
+        class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded btn-soft"
+        title="Restore"
+      >
+        <i class="fa-solid fa-upload"></i>
+      </button>
+      <input
+        type="file"
+        id="fileInput"
+        class="hidden"
+        onchange="restoreData(this)"
+      />
+      <button
+        onclick="openModal('projectModal')"
+        class="theme-bg text-white px-5 py-2 rounded shadow-lg font-bold hover:brightness-110 active:scale-95 transition-all btn-soft"
+      >
+        <i class="fa-solid fa-plus"></i> New Project
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- SIDEBAR -->
+    <div class="lg:col-span-3 space-y-6">
+      <div class="glass-panel p-6 anim-card">
+        <!-- SEARCH -->
+        <div class="relative mb-4">
+          <i
+            class="fa-solid fa-search absolute left-3 top-3 text-slate-500"
+          ></i>
+          <input
+            type="text"
+            placeholder="ค้นหาโปรเจกต์หรือชื่อบล็อก..."
+            oninput="filterProjects(this.value, 'search')"
+            class="w-full bg-slate-900 border border-slate-600 rounded p-2 pl-9 text-white focus:border-[var(--accent-color)] outline-none"
+          />
+        </div>
+
+        <!-- STATS -->
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div
+            class="bg-slate-900/50 p-3 rounded border border-slate-600 text-center"
+          >
+            <span
+              class="text-2xl font-bold text-white block"
+              id="totalProjects"
+              >-</span
+            >
+            <span class="text-[10px] text-slate-400">PROJECTS</span>
+          </div>
+          <div
+            class="bg-slate-900/50 p-3 rounded border border-slate-600 text-center"
+          >
+            <span
+              class="text-2xl font-bold text-emerald-400 block"
+              id="completionRate"
+              >0%</span
+            >
+            <span class="text-[10px] text-slate-400">DONE</span>
+          </div>
+        </div>
+
+        <!-- FILTERS -->
+        <div class="space-y-1">
+          <button
+            onclick="filterProjects('all', 'cat')"
+            class="w-full text-left px-3 py-2 rounded hover:bg-slate-700 text-sm text-slate-300 flex items-center gap-2 btn-soft"
+          >
+            <i class="fa-solid fa-layer-group"></i> ทั้งหมด
+          </button>
+          <button
+            onclick="filterProjects('farm', 'cat')"
+            class="w-full text-left px-3 py-2 rounded hover:bg-slate-700 text-sm text-slate-300 flex items-center gap-2 btn-soft"
+          >
+            <i class="fa-solid fa-wheat-awn text-emerald-400"></i> Farm
+          </button>
+          <button
+            onclick="filterProjects('build', 'cat')"
+            class="w-full text-left px-3 py-2 rounded hover:bg-slate-700 text-sm text-slate-300 flex items-center gap-2 btn-soft"
+          >
+            <i class="fa-solid fa-hammer text-blue-400"></i> Build
+          </button>
+          <button
+            onclick="filterProjects('redstone', 'cat')"
+            class="w-full text-left px-3 py-2 rounded hover:bg-slate-700 text-sm text-slate-300 flex items-center gap-2 btn-soft"
+          >
+            <i class="fa-solid fa-microchip text-red-400"></i> Redstone
+          </button>
+        </div>
+
+        <!-- COMPACT TOGGLE -->
+        <div
+          class="mt-4 pt-4 border-t border-slate-700 flex justify-between items-center text-sm text-slate-400"
+        >
+          <span>Compact View</span>
+          <button
+            onclick="toggleCompactMode()"
+            id="compactBtn"
+            class="text-slate-500 hover:text-white btn-soft"
+          >
+            <i class="fa-solid fa-toggle-off text-2xl"></i>
+          </button>
+        </div>
+      </div>
+
+      <button
+        onclick="openTrash()"
+        class="w-full py-3 rounded border border-red-900/30 text-red-400 hover:bg-red-900/20 transition-all text-sm flex items-center justify-center gap-2 btn-soft glass-panel"
+      >
+        <i class="fa-solid fa-trash-arrow-up"></i> Recycle Bin
+      </button>
+    </div>
+
+    <!-- PROJECT LIST -->
+    <div class="lg:col-span-9">
+      <div
+        id="projectList"
+        class="grid gap-4 pb-20 grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
+      ></div>
+    </div>
+  </div>
+
+  <!-- DETAIL MODAL -->
+  <div
+    id="detailModal"
+    class="fixed inset-0 bg-black/90 hidden items-center justify-center z-50 backdrop-blur-sm"
+  >
+    <div
+      class="glass-panel bg-slate-900 rounded-lg w-full max-w-4xl mx-4 overflow-hidden flex flex-col h-[90vh] shadow-2xl border border-slate-700 modal-panel transform scale-95 opacity-0 transition-all duration-150"
+    >
+      <div
+        class="p-5 border-b border-slate-700 bg-slate-900/80 flex justify-between items-center"
+      >
+        <div class="flex items-center gap-4">
+          <div
+            id="projectIconHeader"
+            class="w-12 h-12 rounded bg-slate-800 flex items-center justify-center border border-slate-600 text-2xl"
+          ></div>
+          <div>
+            <h3
+              class="text-2xl font-bold text-white flex items-center gap-2"
+              id="detailTitle"
+            >
+              ...
+            </h3>
+            <div class="flex gap-2 mt-1 items-center">
+              <span
+                class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300 border border-slate-600"
+                id="detailCat"
+                >Build</span
+              >
+              <button
+                onclick="toggleNote()"
+                class="text-xs text-yellow-400 hover:text-yellow-300 btn-soft"
+              >
+                <i class="fa-solid fa-sticky-note"></i> Notes
+              </button>
+              <button
+                onclick="toggleLayers()"
+                class="text-xs text-sky-400 hover:text-sky-300 btn-soft"
+              >
+                <i class="fa-solid fa-layer-group"></i> Layers
+              </button>
+            </div>
+            <div
+              id="detailSummary"
+              class="mt-1 text-[11px] text-slate-400"
+            ></div>
+            <div
+              class="mt-1 text-[11px] text-slate-500 flex items-center gap-2"
+            >
+              <span>Code:</span>
+              <code
+                id="detailCode"
+                class="bg-slate-900 border border-slate-700 px-1.5 py-0.5 rounded text-[10px]"
+              ></code>
+              <button
+                onclick="copyProjectCode()"
+                class="px-2 py-0.5 rounded bg-slate-800 border border-slate-600 text-[10px] hover:bg-slate-700 btn-soft"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button
+            onclick="copyProjectList()"
+            class="bg-slate-800 text-slate-100 px-3 py-1.5 rounded text-xs border border-slate-600 hover:bg-slate-700 btn-soft"
+          >
+            <i class="fa-solid fa-copy"></i> Copy List
+          </button>
+          <button
+            onclick="completeAllItems()"
+            class="bg-emerald-900/50 text-emerald-400 px-3 py-1.5 rounded text-sm hover:bg-emerald-900 border border-emerald-700/50 btn-soft"
+          >
+            <i class="fa-solid fa-check-double"></i> All
+          </button>
+          <button
+            onclick="closeModal('detailModal')"
+            class="w-8 h-8 rounded hover:bg-slate-700 text-slate-300 flex items-center justify-center btn-soft"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- NOTES -->
+      <div
+        id="projectNoteArea"
+        class="hidden bg-yellow-900/20 p-3 border-b border-yellow-700/30"
+      >
+        <label class="text-xs text-yellow-500 font-bold"
+          >📝 Coordinates / Notes:</label
+        >
+        <textarea
+          id="projectNoteInput"
+          class="w-full bg-slate-950/50 text-white text-sm p-2 rounded border border-yellow-700/30 mt-1 h-20 font-mono"
+          placeholder="X: 100, Y: 64, Z: -200..."
+          onchange="saveNote()"
+        ></textarea>
+      </div>
+
+      <!-- LAYERS -->
+      <div
+        id="projectLayerArea"
+        class="hidden bg-sky-900/20 p-3 border-b border-sky-700/30"
+      >
+        <label class="text-xs text-sky-400 font-bold">📚 Layer Planner</label>
+        <textarea
+          id="projectLayerInput"
+          class="w-full bg-slate-950/50 text-white text-sm p-2 rounded border border-sky-700/30 mt-1 h-20 font-mono"
+          placeholder="Y=64: ฐาน, Y=65: ผนัง..."
+          onchange="saveLayers()"
+        ></textarea>
+      </div>
+
+      <!-- ITEMS TOOLBAR -->
+      <div
+        class="px-4 pt-3 bg-[#0b1120] border-b border-slate-800 flex justify-between items-center text-xs text-slate-400"
+      >
+        <div class="flex items-center gap-2">
+          <span>Sort:</span>
+          <select
+            id="itemSortSelect"
+            onchange="changeItemSort(this.value)"
+            class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200"
+          >
+            <option value="priority">Priority</option>
+            <option value="name">Name</option>
+            <option value="amount">Amount</option>
+            <option value="progress">Progress</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <div class="text-[11px] text-slate-500">
+          Double check items before you build ✨
+        </div>
+      </div>
+
+      <!-- ITEMS -->
+      <div
+        class="flex-1 overflow-y-auto p-4 bg-[#0b1120]"
+        id="itemsContainer"
+      ></div>
+
+      <!-- ADD ITEM -->
+      <div class="p-4 bg-slate-900/90 border-t border-slate-700 relative">
+        <form
+          onsubmit="event.preventDefault(); handleAddItem();"
+          class="flex gap-2 items-center"
+        >
+          <div class="relative flex-1 group">
+            <input type="hidden" id="newItemId" />
+            <input
+              type="text"
+              id="newItemName"
+              placeholder="เพิ่มวัสดุ... (เช่น Oak Log)"
+              class="w-full bg-slate-950 border border-slate-600 rounded p-3 text-white focus:border-[var(--accent-color)] outline-none"
+              oninput="searchItems(this.value)"
+            />
+            <div
+              id="suggestionBox"
+              class="hidden absolute bottom-full left-0 right-0 mb-2 bg-slate-800 border border-slate-600 rounded shadow-xl max-h-48 overflow-y-auto z-20"
+            ></div>
+          </div>
+          <select
+            id="newItemPriority"
+            class="bg-slate-950 border border-slate-600 rounded p-3 text-white outline-none w-24"
+          >
+            <option value="normal">Normal</option>
+            <option value="high">High 🔥</option>
+            <option value="low">Low 💤</option>
+          </select>
+          <input
+            type="number"
+            id="newItemAmount"
+            placeholder="#"
+            class="w-20 bg-slate-950 border border-slate-600 rounded p-3 text-center text-white outline-none"
+          />
+          <button
+            type="submit"
+            class="theme-bg px-5 py-3 rounded text-white font-bold shadow-lg hover:brightness-110 btn-soft"
+          >
+            <i class="fa-solid fa-plus"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW PROJECT MODAL -->
+  <div
+    id="projectModal"
+    class="fixed inset-0 bg-black/90 hidden items-center justify-center z-50 backdrop-blur-sm"
+  >
+    <div
+      class="glass-panel bg-slate-900 p-6 rounded-lg w-full max-w-md mx-4 shadow-2xl border border-slate-600 modal-panel transform scale-95 opacity-0 transition-all duration-150"
+    >
+      <h3 class="text-xl font-bold mb-4 text-white">Create / Import Project</h3>
+      <input
+        type="text"
+        id="newProjectName"
+        placeholder="Project Name"
+        class="w-full bg-slate-950 border border-slate-600 rounded p-3 text-white mb-4 outline-none focus:border-[var(--accent-color)]"
+      />
+      <div class="grid grid-cols-3 gap-2 mb-4">
+        <button
+          onclick="selectCategory('farm')"
+          class="cat-btn p-3 rounded border border-slate-700 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700 flex flex-col items-center gap-1 btn-soft"
+          id="cat-btn-farm"
+        >
+          <i class="fa-solid fa-wheat-awn text-xl"></i
+          ><span class="text-xs">Farm</span>
+        </button>
+        <button
+          onclick="selectCategory('build')"
+          class="cat-btn p-3 rounded border border-slate-700 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700 flex flex-col items-center gap-1 btn-soft"
+          id="cat-btn-build"
+        >
+          <i class="fa-solid fa-hammer text-xl"></i
+          ><span class="text-xs">Build</span>
+        </button>
+        <button
+          onclick="selectCategory('redstone')"
+          class="cat-btn p-3 rounded border border-slate-700 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700 flex flex-col items-center gap-1 btn-soft"
+          id="cat-btn-redstone"
+        >
+          <i class="fa-solid fa-microchip text-xl"></i
+          ><span class="text-xs">Redstone</span>
+        </button>
+      </div>
+      <input type="hidden" id="selectedCat" value="build" />
+
+      <div
+        class="mt-2 mb-4 text-xs text-slate-400 border border-slate-700 rounded p-3 space-y-2"
+      >
+        <p
+          class="font-semibold text-slate-200 text-xs flex items-center gap-2"
+        >
+          <i class="fa-solid fa-code-branch"></i> Import from CODE
+        </p>
+        <div class="flex gap-2">
+          <input
+            id="importCodeInput"
+            class="flex-1 bg-slate-950 border border-slate-600 rounded p-2 text-white text-xs"
+            placeholder="วาง Project ID / CODE ที่แชร์มา"
+          />
+          <button
+            onclick="importProjectFromCode()"
+            class="text-xs px-3 py-2 bg-slate-700 rounded text-white hover:bg-slate-600 border border-slate-500 btn-soft"
+          >
+            Import
+          </button>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <button
+          onclick="closeModal('projectModal')"
+          class="px-4 py-2 text-slate-400 hover:text-white btn-soft"
+        >
+          Cancel
+        </button>
+        <button
+          onclick="handleAddProject()"
+          class="theme-bg px-6 py-2 rounded text-white font-bold btn-soft"
+        >
+          Create
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRASH MODAL -->
+  <div
+    id="trashModal"
+    class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[60] backdrop-blur-sm"
+  >
+    <div
+      class="glass-panel bg-slate-900 rounded-lg w-full max-w-md mx-4 p-6 border border-red-900/50 modal-panel transform scale-95 opacity-0 transition-all duration-150"
+    >
+      <h3 class="text-xl font-bold text-red-400 mb-4">
+        <i class="fa-solid fa-trash"></i> Recycle Bin
+      </h3>
+      <div id="trashList" class="space-y-2 max-h-60 overflow-y-auto mb-4"></div>
+      <div class="flex justify-end">
+        <button
+          onclick="closeModal('trashModal')"
+          class="text-slate-400 hover:text-white btn-soft"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- input สำหรับอัปโหลด texture -->
+  <input
+    type="file"
+    id="textureInput"
+    class="hidden"
+    accept="image/*"
+    onchange="handleTextureUpload(this)"
+  />
+
+  <!-- SCRIPT -->
+  <script type="module">
+    import {
+      initializeApp
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      push,
+      set,
+      remove,
+      update,
+      onValue,
+      get
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    // CONFIG
+    const firebaseConfig = {
+      apiKey: "AIzaSyAn2Pg3uFbIshFVpV1ysNprfIRdFMQ4ZWM",
+      authDomain: "minecraft-deken-project.firebaseapp.com",
+      databaseURL:
+        "https://minecraft-deken-project-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "minecraft-deken-project"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // STATE
+    let projects = [];
+    let trash = JSON.parse(localStorage.getItem("mcTrash") || "[]");
+    let currentProjectId = null;
+    let isCompact = localStorage.getItem("mcCompact") === "true";
+    let currentCatFilter = "all";
+    let currentSearch = "";
+    let itemSort = "priority";
+    let GLOBAL_ITEMS = [];
+
+    // textures (จาก DB + localStorage)
+    let customTextures = JSON.parse(
+      localStorage.getItem("mcCustomTextures") || "{}"
+    );
+    let serverTextures = {};
+    let currentTextureItemId = null;
+
+    const TEXTURE_BASES = [
+      "https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/",
+      "https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/",
+      "https://assets.mcasset.cloud/1.20.4/assets/minecraft/textures/item/",
+      "https://assets.mcasset.cloud/1.20.4/assets/minecraft/textures/block/"
+    ];
+
+    // โหลด items list
+    async function fetchItems() {
+      try {
+        const res = await fetch(
+          "https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/pc/1.20/items.json"
+        );
+        const data = await res.json();
+        GLOBAL_ITEMS = data.map((i) => ({ id: i.name, name: i.displayName }));
+      } catch (e) {
+        GLOBAL_ITEMS = [{ id: "stone", name: "Stone" }];
+      }
+    }
+    fetchItems();
+
+    // fallback texture
+    window.fallbackTexture = (img) => {
+      const id = img.getAttribute("data-id");
+
+      if (id && serverTextures[id]) {
+        img.onerror = null;
+        img.src = serverTextures[id];
+        return;
+      }
+      if (id && customTextures[id]) {
+        img.onerror = null;
+        img.src = customTextures[id];
+        return;
+      }
+
+      if (!id) {
+        img.onerror = null;
+        img.src =
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAAHElEQVQ4T2NkoBAwUqifgYGB4T8jCqZFA1E0EwMAAJVbB2qtDq8zAAAAAElFTkSuQmCC";
+        return;
+      }
+      let step = parseInt(img.getAttribute("data-step") || "0", 10);
+      if (step < TEXTURE_BASES.length) {
+        img.setAttribute("data-step", String(step + 1));
+        img.onerror = () => fallbackTexture(img);
+        img.src = TEXTURE_BASES[step] + id + ".png";
+      } else {
+        img.onerror = null;
+        img.src =
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAAHElEQVQ4T2NkoBAwUqifgYGB4T8jCqZFA1E0EwMAAJVbB2qtDq8zAAAAAElFTkSuQmCC";
+      }
+    };
+
+    // subscribe projects
+    onValue(ref(db, "projects"), (snapshot) => {
+      const data = snapshot.val();
+      projects = [];
+      if (data)
+        Object.keys(data).forEach((key) =>
+          projects.push({ id: key, ...data[key] })
+        );
+      projects.reverse();
+      renderProjects();
+      updateDashboard();
+      if (currentProjectId) renderItems();
+
+      document.getElementById("statusText").innerText = "Online";
+      document.getElementById("statusText").className =
+        "text-xs text-emerald-400";
+      document.getElementById("statusDot").className =
+        "w-2 h-2 rounded-full bg-emerald-500";
+    });
+
+    // subscribe textures (base64 dataURL ใน DB)
+    onValue(ref(db, "textures"), (snap) => {
+      serverTextures = snap.val() || {};
+      if (currentProjectId) renderItems();
+    });
+
+    function getProjectStats(p) {
+      const items = p.items ? Object.values(p.items) : [];
+      let totalBlocks = 0;
+      let haveBlocks = 0;
+      items.forEach((it) => {
+        const amt = parseInt(it.amount) || 0;
+        const cur = parseInt(it.current) || 0;
+        totalBlocks += amt;
+        haveBlocks += Math.min(cur, amt);
+      });
+      return {
+        totalItems: items.length,
+        totalBlocks,
+        haveBlocks,
+        missingBlocks: Math.max(totalBlocks - haveBlocks, 0)
+      };
+    }
+
+    function updateDetailSummary() {
+      const p = projects.find((x) => x.id === currentProjectId);
+      const el = document.getElementById("detailSummary");
+      const codeEl = document.getElementById("detailCode");
+      if (!p || !el || !codeEl) return;
+      const stats = getProjectStats(p);
+      el.textContent = `Items: ${stats.totalItems} | Blocks: ${stats.haveBlocks}/${stats.totalBlocks} (ขาด ${stats.missingBlocks})`;
+      codeEl.textContent = p.id;
+    }
+
+    // compact toggle
+    window.toggleCompactMode = () => {
+      isCompact = !isCompact;
+      localStorage.setItem("mcCompact", isCompact);
+      document.getElementById("compactBtn").innerHTML = isCompact
+        ? '<i class="fa-solid fa-toggle-on text-emerald-400 text-2xl"></i>'
+        : '<i class="fa-solid fa-toggle-off text-2xl"></i>';
+      renderProjects();
+    };
+
+    // trash
+    window.openTrash = () => {
+      const l = document.getElementById("trashList");
+      l.innerHTML = trash.length
+        ? trash
+            .map(
+              (p, i) => `
+        <div class="flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700">
+          <span class="text-slate-300 text-sm">${p.name}</span>
+          <button onclick="restoreProject(${i})" class="text-green-400"><i class="fa-solid fa-rotate-left"></i></button>
+        </div>`
+            )
+            .join("")
+        : '<p class="text-slate-500 text-center">Empty</p>';
+      document.getElementById("trashModal").classList.replace("hidden", "flex");
+    };
+
+    window.restoreProject = (i) => {
+      push(ref(db, "projects"), trash[i]);
+      trash.splice(i, 1);
+      localStorage.setItem("mcTrash", JSON.stringify(trash));
+      openTrash();
+    };
+
+    window.filterProjects = (v, t) => {
+      if (t === "search") currentSearch = v.toLowerCase();
+      else currentCatFilter = v;
+      renderProjects();
+    };
+
+    function updateDashboard() {
+      const total = projects.length;
+      const completed = projects.reduce(
+        (a, p) =>
+          a +
+          (p.items ? Object.values(p.items).filter((i) => i.completed).length : 0),
+        0
+      );
+      const allItems = projects.reduce(
+        (a, p) => a + (p.items ? Object.keys(p.items).length : 0),
+        0
+      );
+      document.getElementById("totalProjects").innerText = total;
+      document.getElementById("completionRate").innerText = allItems
+        ? Math.round((completed / allItems) * 100) + "%"
+        : "0%";
+    }
+
+    function hasItemMatch(p, q) {
+      if (!p.items) return false;
+      return Object.values(p.items).some((it) =>
+        (it.name || "").toLowerCase().includes(q)
+      );
+    }
+
+    function renderProjects() {
+      const container = document.getElementById("projectList");
+      container.innerHTML = "";
+      const filtered = projects.filter(
+        (p) =>
+          (currentCatFilter === "all" || p.category === currentCatFilter) &&
+          (!currentSearch ||
+            p.name.toLowerCase().includes(currentSearch) ||
+            hasItemMatch(p, currentSearch))
+      );
+
+      if (isCompact) container.classList.add("grid-cols-1");
+      else container.classList.remove("grid-cols-1");
+
+      filtered.forEach((p) => {
+        const items = p.items ? Object.values(p.items) : [];
+        const done = items.filter((i) => i.completed).length;
+        const prog = items.length ? Math.round((done / items.length) * 100) : 0;
+        const icon = {
+          farm: "fa-wheat-awn text-emerald-400",
+          build: "fa-hammer text-blue-400",
+          redstone: "fa-microchip text-red-400"
+        }[p.category || "build"];
+
+        if (isCompact) {
+          container.innerHTML += `
+          <div onclick="openProjectDetails('${p.id}')" class="glass-panel anim-card hover-pop p-3 flex justify-between items-center hover:bg-slate-800 cursor-pointer border-l-4 border-l-[var(--accent-color)]">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid ${icon}"></i>
+              <span class="text-white font-medium">${p.name}</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <div class="w-24 bg-slate-900 rounded-full h-1.5">
+                <div class="theme-bg h-full rounded-full" style="width:${prog}%"></div>
+              </div>
+              <span class="text-xs text-slate-400">${done}/${items.length}</span>
+            </div>
+          </div>`;
+        } else {
+          container.innerHTML += `
+          <div onclick="openProjectDetails('${p.id}')" class="glass-panel anim-card hover-pop p-5 rounded-lg cursor-pointer hover:bg-slate-800 hover:border-[var(--accent-color)] transition-all relative">
+            <div class="flex justify-between items-start mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:conic-gradient(var(--accent-color) ${
+                  prog * 3.6
+                }deg,#1e293b 0deg)">
+                  <div class="w-8 h-8 bg-slate-900 rounded-full flex items-center justify-center text-[10px] font-bold">${prog}%</div>
+                </div>
+                <div>
+                  <h3 class="font-bold text-lg text-white truncate max-w-[140px]">${p.name}</h3>
+                  <span class="text-[10px] uppercase text-slate-500 font-bold bg-slate-900 px-2 py-0.5 rounded">${p.category}</span>
+                </div>
+              </div>
+              <button onclick="deleteProject('${
+                p.id
+              }',event)" class="text-slate-600 hover:text-red-500 btn-soft"><i class="fa-solid fa-trash"></i></button>
+            </div>
+            <div class="flex justify-between text-xs text-slate-400 mt-2 border-t border-slate-700/50 pt-2">
+              <span><i class="fa-solid fa-box"></i> ${items.length} Items</span>
+              <span>${done} Done</span>
+            </div>
+          </div>`;
+        }
+      });
+    }
+
+    window.openProjectDetails = (id) => {
+      currentProjectId = id;
+      const p = projects.find((x) => x.id === id);
+      if (!p) return;
+      document.getElementById("detailTitle").innerText = p.name;
+      document.getElementById("detailCat").innerText = p.category;
+      document.getElementById("projectNoteInput").value = p.notes || "";
+      document.getElementById("projectLayerInput").value = p.layers || "";
+      document.getElementById("projectNoteArea").classList.add("hidden");
+      document.getElementById("projectLayerArea").classList.add("hidden");
+      const icons = {
+        farm: "fa-wheat-awn text-emerald-400",
+        build: "fa-hammer text-blue-400",
+        redstone: "fa-microchip text-red-400"
+      };
+      document.getElementById("projectIconHeader").innerHTML = `<i class="fa-solid ${
+        icons[p.category]
+      }"></i>`;
+      renderItems();
+      updateDetailSummary();
+      openModal("detailModal");
+    };
+
+    window.changeItemSort = (mode) => {
+      itemSort = mode;
+      renderItems();
+    };
+
+    window.renderItems = () => {
+      const container = document.getElementById("itemsContainer");
+      const p = projects.find((x) => x.id === currentProjectId);
+      container.innerHTML = "";
+      if (!p || !p.items) {
+        container.innerHTML =
+          '<p class="text-slate-500 text-center mt-10">Add items to start</p>';
+        updateDetailSummary();
+        return;
+      }
+      let items = Object.keys(p.items).map((k) => ({ id: k, ...p.items[k] }));
+
+      items = items.sort((a, b) => {
+        const pr = (x) =>
+          x.priority === "high" ? 0 : x.priority === "normal" ? 1 : 2;
+        if (itemSort === "name")
+          return (a.name || "").localeCompare(b.name || "");
+        if (itemSort === "amount")
+          return (parseInt(b.amount) || 0) - (parseInt(a.amount) || 0);
+        if (itemSort === "progress") {
+          const pa =
+            (parseInt(a.current) || 0) / (parseInt(a.amount) || 1);
+          const pb =
+            (parseInt(b.current) || 0) / (parseInt(b.amount) || 1);
+          return pb - pa;
+        }
+        if (itemSort === "completed") {
+          return a.completed === b.completed ? 0 : a.completed ? 1 : -1;
+        }
+        const d = pr(a) - pr(b);
+        if (d !== 0) return d;
+        return (a.name || "").localeCompare(b.name || "");
+      });
+
+      let allDone = true;
+      items.forEach((item) => {
+        if (!item.completed) allDone = false;
+        const pct = Math.min(
+          100,
+          Math.round(
+            ((parseInt(item.current) || 0) /
+              (parseInt(item.amount) || 1)) *
+              100
+          )
+        );
+        const badge =
+          item.priority === "high"
+            ? '<span class="text-[10px] bg-red-900/50 text-red-400 px-1 rounded ml-2">HI</span>'
+            : "";
+
+        const texSrc = serverTextures[item.itemId]
+          ? serverTextures[item.itemId]
+          : customTextures[item.itemId]
+          ? customTextures[item.itemId]
+          : `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${item.itemId}.png`;
+
+        container.innerHTML += `
+        <div class="relative overflow-hidden rounded mb-2 border transition-all ${
+          item.completed
+            ? "border-emerald-900/50 bg-emerald-900/10 opacity-60"
+            : "border-slate-700 bg-slate-800/40"
+        }">
+          <div class="absolute top-0 left-0 bg-[var(--accent-color)] opacity-10 h-full transition-all" style="width:${pct}%"></div>
+          <div class="relative flex items-center gap-3 p-3">
+            <button onclick="toggleItem('${item.id}',${item.completed},${
+          item.amount
+        })" class="w-6 h-6 rounded border flex items-center justify-center ${
+          item.completed
+            ? "bg-emerald-500 border-emerald-500"
+            : "border-slate-600"
+        }">
+              ${
+                item.completed
+                  ? '<i class="fa-solid fa-check text-xs text-white"></i>'
+                  : ""
+              }
+            </button>
+            <img src="${texSrc}"
+              class="w-8 h-8 pixel-art cursor-pointer"
+              title="คลิกเพื่ออัปโหลดรูปสำหรับไอเท็มนี้ (แชร์ให้ทุกคน)"
+              data-id="${item.itemId}" data-step="0"
+              onclick="openTextureUpload('${item.itemId}')"
+              onerror="fallbackTexture(this)">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center">
+                <p class="text-sm font-medium text-slate-200 truncate">${
+                  item.name
+                }</p>
+                ${badge}
+              </div>
+              <div class="w-full bg-slate-700/50 h-1 rounded-full mt-1">
+                <div class="theme-bg h-full transition-all" style="width:${pct}%"></div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1 bg-slate-950/50 rounded p-1 border border-slate-700">
+              <input type="number" value="${
+                item.current || 0
+              }" onchange="updateProgress('${item.id}',this.value,${
+          item.amount
+        })" class="w-12 bg-transparent text-right text-white outline-none font-mono text-sm">
+              <span class="text-slate-500 text-xs">/${item.amount}</span>
+            </div>
+            <button onclick="removeItem('${
+              item.id
+            }')" class="text-slate-600 hover:text-red-400 px-2"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        </div>`;
+      });
+      if (allDone && items.length > 0)
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      updateDetailSummary();
+    };
+
+    // add item optimistic
+    window.handleAddItem = () => {
+      const name = document.getElementById("newItemName").value;
+      const amount = document.getElementById("newItemAmount").value || 1;
+      const priority = document.getElementById("newItemPriority").value;
+      const id =
+        document.getElementById("newItemId").value ||
+        name.toLowerCase().replace(/ /g, "_");
+      if (name && currentProjectId) {
+        const tempId = "temp_" + Date.now();
+        const newItem = {
+          name,
+          itemId: id,
+          amount,
+          current: 0,
+          completed: false,
+          priority
+        };
+        const p = projects.find((x) => x.id === currentProjectId);
+        if (!p.items) p.items = {};
+        p.items[tempId] = newItem;
+        renderItems();
+        push(ref(db, `projects/${currentProjectId}/items`), newItem);
+        document.getElementById("newItemName").value = "";
+        document.getElementById("newItemAmount").value = "";
+        document.getElementById("newItemName").focus();
+        document.getElementById("newItemId").value = "";
+      }
+    };
+
+    window.toggleItem = (id, done, target) => {
+      const p = projects.find((x) => x.id === currentProjectId);
+      if (p && p.items[id]) {
+        p.items[id].completed = !done;
+        p.items[id].current = !done ? target : 0;
+        renderItems();
+      }
+      update(ref(db, `projects/${currentProjectId}/items/${id}`), {
+        completed: !done,
+        current: !done ? target : 0
+      });
+    };
+
+    window.updateProgress = (id, val, target) => {
+      const v = Math.min(target, Math.max(0, parseInt(val) || 0));
+      const p = projects.find((x) => x.id === currentProjectId);
+      if (p && p.items[id]) {
+        p.items[id].current = v;
+        p.items[id].completed = v >= target;
+      }
+      update(ref(db, `projects/${currentProjectId}/items/${id}`), {
+        current: v,
+        completed: v >= target
+      });
+    };
+
+    window.removeItem = (id) => {
+      const p = projects.find((x) => x.id === currentProjectId);
+      if (p && p.items[id]) {
+        delete p.items[id];
+        renderItems();
+      }
+      remove(ref(db, `projects/${currentProjectId}/items/${id}`));
+    };
+
+    // notes / layers
+    window.toggleNote = () =>
+      document.getElementById("projectNoteArea").classList.toggle("hidden");
+    window.toggleLayers = () =>
+      document.getElementById("projectLayerArea").classList.toggle("hidden");
+
+    window.saveNote = () =>
+      update(ref(db, `projects/${currentProjectId}`), {
+        notes: document.getElementById("projectNoteInput").value
+      });
+    window.saveLayers = () =>
+      update(ref(db, `projects/${currentProjectId}`), {
+        layers: document.getElementById("projectLayerInput").value
+      });
+
+    // share code & list
+    window.copyProjectCode = () => {
+      if (!currentProjectId) return;
+      const text = currentProjectId;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => alert("คัดลอก CODE แล้ว"));
+      } else {
+        prompt("คัดลอก CODE นี้:", text);
+      }
+    };
+
+    window.importProjectFromCode = async () => {
+      const code = document.getElementById("importCodeInput").value.trim();
+      if (!code) return;
+      try {
+        const snap = await get(ref(db, "projects/" + code));
+        if (!snap.exists()) {
+          alert("ไม่พบ project code นี้");
+          return;
+        }
+        const data = snap.val();
+        const newRef = push(ref(db, "projects"), {
+          name: (data.name || "Imported Project") + " (copy)",
+          category: data.category || "build",
+          timestamp: Date.now(),
+          notes: data.notes || "",
+          layers: data.layers || ""
+        });
+        const newId = newRef.key;
+        if (data.items) {
+          Object.values(data.items).forEach((it) => {
+            push(ref(db, `projects/${newId}/items`), {
+              name: it.name,
+              itemId: it.itemId,
+              amount: it.amount,
+              current: 0,
+              completed: false,
+              priority: it.priority || "normal"
+            });
+          });
+        }
+        alert("Import แล้ว สร้างโปรเจกต์ใหม่เรียบร้อย");
+      } catch (err) {
+        console.error(err);
+        alert("มีปัญหาในการ import project");
+      }
+    };
+
+    window.copyProjectList = () => {
+      const p = projects.find((x) => x.id === currentProjectId);
+      if (!p || !p.items) return;
+      const lines = Object.values(p.items).map(
+        (it) => `${it.amount || 0} x ${it.name}`
+      );
+      const text = `${p.name} materials:\n` + lines.join("\n");
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard
+          .writeText(text)
+          .then(() => alert("คัดลอก list แล้ว"));
+      } else {
+        prompt("คัดลอกข้อความนี้ด้วยตัวเอง:", text);
+      }
+    };
+
+    // texture upload ผ่าน Realtime DB (base64)
+    window.openTextureUpload = (itemId) => {
+      currentTextureItemId = itemId;
+      const input = document.getElementById("textureInput");
+      if (input) input.click();
+    };
+
+    window.handleTextureUpload = (input) => {
+      const file = input.files[0];
+      if (!file || !currentTextureItemId) {
+        input.value = "";
+        return;
+      }
+
+      const itemId = currentTextureItemId;
+      currentTextureItemId = null;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target.result;
+
+        set(ref(db, "textures/" + itemId), dataUrl)
+          .then(() => {
+            serverTextures[itemId] = dataUrl;
+            customTextures[itemId] = dataUrl;
+            localStorage.setItem(
+              "mcCustomTextures",
+              JSON.stringify(customTextures)
+            );
+            if (currentProjectId) renderItems();
+            alert("อัปโหลด texture สำเร็จ: " + itemId);
+          })
+          .catch((err) => {
+            console.error(err);
+            alert("อัปโหลดไม่สำเร็จ: " + err.message);
+          })
+          .finally(() => {
+            input.value = "";
+          });
+      };
+      reader.readAsDataURL(file);
+    };
+
+    // project CRUD
+    window.deleteProject = (id, e) => {
+      e.stopPropagation();
+      const p = projects.find((x) => x.id === id);
+      if (confirm("Move to trash?")) {
+        trash.push(p);
+        localStorage.setItem("mcTrash", JSON.stringify(trash));
+        remove(ref(db, `projects/${id}`));
+      }
+    };
+
+    window.selectCategory = (cat) => {
+      document
+        .querySelectorAll(".cat-btn")
+        .forEach((b) =>
+          b.classList.remove("bg-slate-700", "text-white")
+        );
+      document
+        .getElementById(`cat-btn-${cat}`)
+        .classList.add("bg-slate-700", "text-white");
+      document.getElementById("selectedCat").value = cat;
+    };
+
+    window.handleAddProject = () => {
+      const name = document.getElementById("newProjectName").value;
+      if (name) {
+        push(ref(db, "projects"), {
+          name,
+          category: document.getElementById("selectedCat").value,
+          timestamp: Date.now()
+        });
+        closeModal("projectModal");
+        document.getElementById("newProjectName").value = "";
+      }
+    };
+
+    // search items / suggestions
+    window.searchItems = (val) => {
+      const box = document.getElementById("suggestionBox");
+      if (!val) {
+        box.classList.add("hidden");
+        return;
+      }
+      const matches = GLOBAL_ITEMS.filter((i) =>
+        i.name.toLowerCase().includes(val.toLowerCase())
+      ).slice(0, 10);
+      box.innerHTML = matches
+        .map((i) => {
+          const texSrc = serverTextures[i.id]
+            ? serverTextures[i.id]
+            : customTextures[i.id]
+            ? customTextures[i.id]
+            : `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${i.id}.png`;
+          return `
+        <div class="p-2 hover:bg-slate-700 cursor-pointer flex items-center gap-2" onclick="selectSearchItem('${i.name}','${i.id}')">
+          <img src="${texSrc}" class="w-4 h-4 pixel-art" data-id="${i.id}" data-step="0" onerror="fallbackTexture(this)">
+          ${i.name}
+        </div>`;
+        })
+        .join("");
+      box.classList.remove("hidden");
+    };
+
+    window.selectSearchItem = (n, i) => {
+      document.getElementById("newItemName").value = n;
+      document.getElementById("newItemId").value = i;
+      document.getElementById("suggestionBox").classList.add("hidden");
+    };
+
+    // MODALS (มี animation)
+    window.openModal = (id) => {
+      const modal = document.getElementById(id);
+      if (!modal) return;
+
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+
+      const panel = modal.querySelector(".modal-panel");
+      if (panel) {
+        panel.classList.remove("opacity-0", "scale-95");
+        panel.classList.add("opacity-100", "scale-100");
+      }
+    };
+
+    window.closeModal = (id) => {
+      const modal = document.getElementById(id);
+      if (!modal) return;
+
+      const panel = modal.querySelector(".modal-panel");
+      if (panel) {
+        panel.classList.remove("opacity-100", "scale-100");
+        panel.classList.add("opacity-0", "scale-95");
+        setTimeout(() => {
+          modal.classList.remove("flex");
+          modal.classList.add("hidden");
+        }, 150);
+      } else {
+        modal.classList.remove("flex");
+        modal.classList.add("hidden");
+      }
+    };
+
+    // backup / restore
+    window.backupData = () => {
+      const a = document.createElement("a");
+      a.href =
+        "data:text/json;charset=utf-8," +
+        encodeURIComponent(JSON.stringify(projects));
+      a.download = "mc_backup.json";
+      a.click();
+    };
+
+    window.restoreData = (i) => {
+      const f = i.files[0];
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = (e) => {
+        JSON.parse(e.target.result).forEach((p) => {
+          delete p.id;
+          push(ref(db, "projects"), p);
+        });
+        alert("Done");
+      };
+      r.readAsText(f);
+    };
+
+    window.completeAllItems = () => {
+      if (confirm("Complete all?")) {
+        const p = projects.find((x) => x.id === currentProjectId);
+        Object.keys(p.items).forEach((k) =>
+          update(ref(db, `projects/${currentProjectId}/items/${k}`), {
+            completed: true,
+            current: p.items[k].amount
+          })
+        );
+      }
+    };
+  </script>
+</body>
+</html>
