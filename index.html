@@ -76,6 +76,11 @@
     
     /* Input Number Hide Arrows */
     input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    /* Circle Grid */
+    .pixel-grid { display: grid; gap: 1px; background: #333; margin: 0 auto; }
+    .pixel-cell { width: 10px; height: 10px; background: #1e293b; }
+    .pixel-cell.active { background: #8b5cf6; box-shadow: 0 0 4px #8b5cf6; }
   </style>
 </head>
 
@@ -111,7 +116,7 @@
         <div class="w-px bg-slate-700 mx-1"></div>
         
         <button onclick="openModal('netherModal')" class="w-9 h-9 rounded-lg hover:bg-slate-700 text-pink-400 transition-all tooltip" title="Nether Calculator"><i class="fa-solid fa-calculator"></i></button>
-        <button onclick="openModal('xpModal')" class="w-9 h-9 rounded-lg hover:bg-slate-700 text-yellow-400 transition-all tooltip" title="XP Calculator"><i class="fa-solid fa-star"></i></button>
+        <button onclick="openModal('circleModal')" class="w-9 h-9 rounded-lg hover:bg-slate-700 text-cyan-400 transition-all tooltip" title="Circle Generator"><i class="fa-regular fa-circle"></i></button>
         <button onclick="backupData()" class="w-9 h-9 rounded-lg hover:bg-slate-700 text-blue-400 transition-all tooltip" title="Download Backup"><i class="fa-solid fa-download"></i></button>
         <button onclick="document.getElementById('fileInput').click()" class="w-9 h-9 rounded-lg hover:bg-slate-700 text-blue-400 transition-all tooltip" title="Restore Data"><i class="fa-solid fa-upload"></i></button>
         <input type="file" id="fileInput" class="hidden" onchange="restoreData(this)" />
@@ -235,19 +240,19 @@
     </div>
   </div>
 
-  <div id="xpModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('xpModal')"></div>
-    <div class="glass-morphism p-6 rounded-2xl w-full max-w-sm m-4 relative transform scale-95 opacity-0 transition-all modal-content">
-        <h3 class="text-lg font-bold text-yellow-400 mb-4 flex items-center gap-2"><i class="fa-solid fa-star"></i> XP Calculator</h3>
+  <div id="circleModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('circleModal')"></div>
+    <div class="glass-morphism p-6 rounded-2xl w-full max-w-lg m-4 relative transform scale-95 opacity-0 transition-all modal-content flex flex-col max-h-[85vh]">
+        <h3 class="text-lg font-bold text-cyan-400 mb-4 flex items-center gap-2"><i class="fa-regular fa-circle"></i> Circle Generator</h3>
         <div class="flex items-center gap-2 mb-4">
-            <input type="number" id="xpStart" placeholder="Lvl Start" class="w-1/2 bg-slate-900 border border-slate-600 rounded p-2 text-white text-center">
-            <span class="text-slate-500"><i class="fa-solid fa-arrow-right"></i></span>
-            <input type="number" id="xpEnd" placeholder="Lvl Target" class="w-1/2 bg-slate-900 border border-slate-600 rounded p-2 text-white text-center">
+            <label class="text-sm text-slate-300">Radius:</label>
+            <input type="number" id="circleRadius" placeholder="e.g. 5" class="bg-slate-900 border border-slate-600 rounded p-2 text-white w-20 text-center" oninput="drawCircle(this.value)">
+            <span class="text-xs text-slate-500 ml-2">Max: 30</span>
         </div>
-        <button onclick="calcXP()" class="w-full bg-yellow-600/50 hover:bg-yellow-600 text-white rounded p-2 mb-4">Calculate</button>
-        <div class="text-center text-sm text-slate-300">
-            Total XP Needed: <span id="xpResult" class="font-bold text-yellow-400">0</span>
+        <div class="flex-1 bg-[#111] border border-slate-700 rounded overflow-auto p-4 flex items-center justify-center min-h-[300px]">
+             <div id="circleCanvas" class="pixel-grid"></div>
         </div>
+        <p class="text-xs text-slate-500 mt-2 text-center">Black cells = Place Block</p>
     </div>
   </div>
 
@@ -352,14 +357,9 @@
             const current = item.current || 0;
             const percent = Math.min(100, Math.round((current/max)*100));
             
-            // Feature: Shulker Box Calc
-            const sbCount = Math.floor(max / 1728);
-            const stackCount = Math.floor((max % 1728) / 64);
-            const remainder = max % 64;
-            let displayStr = "";
-            if(sbCount > 0) displayStr += `${sbCount} SB `;
-            if(stackCount > 0) displayStr += `${stackCount} Stk `;
-            if(remainder > 0 || displayStr === "") displayStr += `${remainder} ea`;
+            // Calc Stacks/Remainder for Visual Input
+            const currentStack = Math.floor(current / 64);
+            const currentRem = current % 64;
 
             return `<div class="group relative flex items-center gap-4 bg-slate-800/40 border border-slate-700/50 hover:border-slate-500 rounded-xl p-3 transition-all ${item.completed ? 'opacity-50 grayscale-[0.5]' : ''} ${item.priority==='high' ? 'border-l-4 border-l-red-500 bg-red-900/10' : ''}">
                 <div class="flex items-center gap-3 pl-1">
@@ -377,15 +377,24 @@
                     <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-700/50 relative">
                         <div class="h-full bg-emerald-500 transition-all duration-300" style="width: ${percent}%"></div>
                     </div>
-                    <div class="flex justify-between mt-1"><span class="text-[9px] text-slate-400">${displayStr}</span><span class="text-[9px] text-slate-400">${percent}%</span></div>
+                    <div class="flex justify-between mt-1"><span class="text-[9px] text-slate-400">Target: ${max}</span><span class="text-[9px] text-slate-400">${percent}%</span></div>
                 </div>
-                <div class="flex items-center bg-slate-950 rounded-lg border border-slate-700 p-0.5 select-none shadow-inner">
-                    <button class="w-8 h-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 rounded stepper-btn transition-colors" onmousedown="adjustAmount('${item.id}', -1, ${current}, ${max})"><i class="fa-solid fa-minus text-xs"></i></button>
-                    <div class="w-16 text-center text-xs font-mono font-bold text-white cursor-text" onclick="promptAmount('${item.id}', ${max})">
-                        <span class="${current >= max ? 'text-green-400' : 'text-slate-200'}">${current}</span><span class="text-slate-500">/${max}</span>
+                
+                <div class="flex items-center bg-slate-950 rounded-lg border border-slate-700 p-1 select-none shadow-inner h-9 gap-1">
+                    <div class="relative group/in">
+                        <input type="number" value="${currentStack}" min="0" 
+                               onchange="updateDualInput('${item.id}', this.value, document.getElementById('u_${item.id}').value, ${max})" 
+                               class="w-8 bg-transparent text-right text-slate-300 outline-none font-mono text-xs focus:text-white border-b border-transparent focus:border-[var(--accent-color)] transition-all">
+                        <span class="text-[8px] text-slate-600 absolute bottom-3 right-0 -mr-1 pointer-events-none">s</span>
                     </div>
-                    <button class="w-8 h-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 rounded stepper-btn transition-colors" onmousedown="adjustAmount('${item.id}', 1, ${current}, ${max})"><i class="fa-solid fa-plus text-xs"></i></button>
+                    <span class="text-slate-600 text-[10px]">:</span>
+                    <div class="relative">
+                         <input type="number" id="u_${item.id}" value="${currentRem}" min="0" 
+                                onchange="updateDualInput('${item.id}', document.querySelector('input[onchange*=\\'${item.id}\\']').value, this.value, ${max})" 
+                                class="w-8 bg-transparent text-right text-emerald-400 outline-none font-mono text-xs focus:text-white border-b border-transparent focus:border-[var(--accent-color)] transition-all">
+                    </div>
                 </div>
+
                 <button onclick="delItem('${item.id}')" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-500/20 text-slate-600 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100"><i class="fa-solid fa-xmark"></i></button>
             </div>`;
         }).join('');
@@ -398,12 +407,28 @@
         document.getElementById("newTotalDisplay").innerText = (s * 64) + u;
     };
 
+    window.updateDualInput = (id, stackVal, unitVal, max) => {
+        const s = parseInt(stackVal) || 0;
+        const u = parseInt(unitVal) || 0;
+        // Logic: (Stack * 64) + Unit. If user puts 70 in unit, it handles it correctly.
+        const total = (s * 64) + u;
+        const finalVal = Math.min(max, Math.max(0, total));
+        const isComp = finalVal >= max;
+        
+        update(ref(db, `projects/${state.currentId}/items/${id}`), {
+            current: finalVal,
+            completed: isComp
+        });
+        
+        if(isComp) showAchievement("Item Completed!", "emerald");
+    };
+
     window.handleAddItem = () => {
         const name = document.getElementById("newItemName").value;
         const s = parseInt(document.getElementById("newStackAmt").value) || 0;
         const u = parseInt(document.getElementById("newSingleAmt").value) || 0;
         const total = (s * 64) + u;
-        const finalAmount = total > 0 ? total : 64; // Default to 1 stack if 0
+        const finalAmount = total > 0 ? total : 64; 
         
         if (!name || !state.currentId) return;
         push(ref(db, `projects/${state.currentId}/items`), {
@@ -426,17 +451,27 @@
         document.getElementById("netherOutZ").innerText = Math.round(z / 8);
     };
 
-    window.calcXP = () => {
-        const start = parseInt(document.getElementById("xpStart").value) || 0;
-        const end = parseInt(document.getElementById("xpEnd").value) || 0;
-        const xpForLevel = (lvl) => {
-            if(lvl <= 16) return lvl * 2 + 7;
-            if(lvl <= 31) return 5 * lvl - 38;
-            return 9 * lvl - 158;
-        };
-        let total = 0;
-        for(let i = start; i < end; i++) total += xpForLevel(i);
-        document.getElementById("xpResult").innerText = total.toLocaleString();
+    window.drawCircle = (r) => {
+        const radius = parseInt(r);
+        if(!radius || radius <= 0 || radius > 30) return;
+        const grid = document.getElementById("circleCanvas");
+        const size = radius * 2 + 1;
+        grid.style.gridTemplateColumns = `repeat(${size}, 10px)`;
+        grid.innerHTML = "";
+        
+        // Simple Circle Algorithm
+        for(let y = -radius; y <= radius; y++) {
+            for(let x = -radius; x <= radius; x++) {
+                const dist = Math.sqrt(x*x + y*y);
+                const cell = document.createElement("div");
+                cell.className = "pixel-cell";
+                // Draw outline (approx between r-0.5 and r+0.5)
+                if(dist >= radius - 0.5 && dist <= radius + 0.5) {
+                    cell.classList.add("active");
+                }
+                grid.appendChild(cell);
+            }
+        }
     };
 
     window.backupData = () => {
@@ -463,12 +498,10 @@
         el.value = '';
     };
 
-    // Standard funcs (same as before)
+    // Standard funcs
     window.openProject = (id) => { state.currentId = id; renderItems(); const m=document.getElementById("detailModal"); m.classList.remove("hidden"); setTimeout(() => { m.querySelector(".modal-content").classList.remove("scale-95","opacity-0"); m.querySelector(".modal-content").classList.add("scale-100","opacity-100"); }, 10); };
     window.closeModal = (id) => { const m=document.getElementById(id); m.querySelector(".modal-content").classList.remove("scale-100","opacity-100"); m.querySelector(".modal-content").classList.add("scale-95","opacity-0"); setTimeout(()=>m.classList.add("hidden"),300); if(id==='detailModal')state.currentId=null; };
-    window.adjustAmount = (id, d, c, m) => { const n=Math.max(0, Math.min(m, c+d)); update(ref(db, `projects/${state.currentId}/items/${id}`), {current:n, completed:n>=m}); if(n>=m && d>0) showAchievement("Item Completed!", "emerald"); };
     window.toggleItem = (id, c, m) => { update(ref(db, `projects/${state.currentId}/items/${id}`), {completed:c, current:c?m:0}); if(c){ confetti({particleCount:50,spread:60,origin:{y:0.7}}); showAchievement("Task Done!", "gold"); } };
-    window.promptAmount = (id, max) => { const v=prompt(`Set amount (Max: ${max}):`); if(v!==null){ const n=parseInt(v); if(!isNaN(n)) update(ref(db, `projects/${state.currentId}/items/${id}`), {current:Math.min(max,Math.max(0,n)), completed:n>=max}); } };
     window.copyToClipboard = () => { const p=state.projects.find(x=>x.id===state.currentId); if(!p)return; const items=Object.values(p.items||{}); const todo=items.filter(i=>!i.completed); let t=`**${p.name}**\nTo Collect:\n`+todo.map(i=>`• ${i.name}: ${i.current}/${i.amount}`).join('\n'); navigator.clipboard.writeText(t); showAchievement("Copied!", "blue"); };
     window.toggleFocusMode = () => { state.isFocusMode=!state.isFocusMode; const m=document.getElementById("detailModal").querySelector(".modal-content"); if(state.isFocusMode){ m.classList.add("fixed","inset-0","z-[100]","rounded-none"); m.classList.remove("rounded-2xl","border"); document.getElementById("focusBtn").innerHTML='<i class="fa-solid fa-compress"></i>'; }else{ m.classList.remove("fixed","inset-0","z-[100]","rounded-none"); m.classList.add("rounded-2xl","border"); document.getElementById("focusBtn").innerHTML='<i class="fa-solid fa-expand"></i>'; } };
     window.showAchievement = (t,c) => { const d=document.createElement("div"); d.className="achievement-toast"; let i="fa-trophy"; if(c==='emerald')i="fa-check"; if(c==='blue')i="fa-clipboard"; d.innerHTML=`<div class="w-8 h-8 bg-slate-800 border-2 border-white flex items-center justify-center"><i class="fa-solid ${i} text-${c}-400"></i></div><div><span class="text-xs text-yellow-200 block">Achievement Get!</span><span>${t}</span></div>`; document.getElementById("toast-container").appendChild(d); setTimeout(()=>d.remove(),4000); };
