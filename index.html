@@ -2,10 +2,10 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Minecraft Manager (Smooth Edition)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Minecraft Manager: Ultimate Edition</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -14,217 +14,239 @@
       theme: {
         extend: {
           fontFamily: { sans: ["Kanit", "sans-serif"], pixel: ['"Press Start 2P"', 'cursive'] },
-          colors: { bgDark: "#0f172a", cardDark: "#1e293b" }
+          colors: { 
+            mcDark: "#111111", 
+            mcPanel: "rgba(30, 41, 59, 0.75)",
+            accent: "#8b5cf6"
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'popup': 'popup 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+          },
+          keyframes: {
+            float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+            popup: { '0%': { opacity: 0, transform: 'scale(0.9)' }, '100%': { opacity: 1, transform: 'scale(1)' } }
+          }
         }
       }
     };
   </script>
 
   <style>
-    :root {
-      --accent-color: #8b5cf6;
-    }
-
-    /* OPTIMIZED BACKGROUND: แยก Layer เพื่อความลื่น */
-    #bg-layer {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      z-index: -1;
-      background-color: #020617;
-      background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.95)),
-        url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/dirt.png");
-      background-size: cover, 64px;
-      background-repeat: repeat;
-      will-change: transform; /* บอก Browser ให้เตรียม GPU */
-    }
-
+    :root { --accent-color: #8b5cf6; --glass-border: rgba(255, 255, 255, 0.1); }
+    
     body {
-      color: white;
-      image-rendering: pixelated; /* คงความคมชัดแบบ Pixel Art */
-      cursor: url('https://cdnjs.cloudflare.com/ajax/libs/cursor-effects/1.0.0/cursor/minecraft-sword.png'), auto;
+      background-color: #050505;
+      color: #e2e8f0;
+      overflow-x: hidden;
+      cursor: default; /* ปรับกลับเป็น default เพื่อ UX ที่ดีกว่า หรือใช้ custom cursor ที่เล็กกว่านี้ */
     }
 
-    /* ลดความหน่วงของ Glass Effect */
-    .glass-panel {
-      background: rgba(15, 23, 42, 0.96);
-      border-radius: 12px;
-      border: 1px solid rgba(148, 163, 184, 0.25);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* ลดเงาที่ซับซ้อน */
-      /* backdrop-filter: blur(4px); เอาออกเพื่อความลื่นบนมือถือ */
+    /* Dynamic Background */
+    #bg-layer {
+      position: fixed; inset: 0; z-index: -2;
+      background-image: url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/stone.png");
+      background-size: 128px;
+      filter: brightness(0.2);
+      transition: all 1s ease;
+    }
+    #bg-gradient {
+      position: fixed; inset: 0; z-index: -1;
+      background: radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.15), transparent 70%);
+      pointer-events: none;
     }
 
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 999px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+    /* Modern Glass Panel */
+    .glass-morphism {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    }
 
     .pixel-art { image-rendering: pixelated; }
-    .theme-bg { background-color: var(--accent-color); }
-    .theme-text { color: var(--accent-color); }
 
-    /* Animation ที่เบาเครื่องขึ้น */
-    .anim-card { animation: cardIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); will-change: transform, opacity; }
-    @keyframes cardIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+
+    /* Custom Checkbox */
+    .mc-checkbox { appearance: none; width: 20px; height: 20px; border: 2px solid #64748b; border-radius: 4px; display: grid; place-content: center; transition: 0.2s; cursor: pointer; }
+    .mc-checkbox::before { content: ""; width: 10px; height: 10px; transform: scale(0); transition: 0.1s transform ease-in-out; box-shadow: inset 10px 10px var(--accent-color); transform-origin: center; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%); }
+    .mc-checkbox:checked { border-color: var(--accent-color); background: rgba(139, 92, 246, 0.1); }
+    .mc-checkbox:checked::before { transform: scale(1); }
+
+    /* Achievement Toast */
+    .achievement-toast {
+      background: #232323;
+      border: 2px solid #ffffff;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #ffff55;
+      font-family: 'Press Start 2P', cursive; /* Minecraft Font */
+      font-size: 10px;
+      box-shadow: 0 0 0 2px #232323, 4px 4px 0 rgba(0,0,0,0.5);
+      animation: slideDown 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards, fadeOut 0.5s 3s forwards;
+      min-width: 280px;
     }
+    @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes fadeOut { to { opacity: 0; pointer-events: none; } }
 
-    .hover-pop { transition: transform 0.1s ease, box-shadow 0.1s ease; will-change: transform; }
-    .hover-pop:hover { transform: translateY(-2px); }
+    /* 3D Card Hover Effect */
+    .card-3d { transition: transform 0.3s ease, box-shadow 0.3s ease; transform-style: preserve-3d; }
+    .card-3d:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 20px 40px -5px rgba(0,0,0,0.4); border-color: var(--accent-color); }
 
-    .btn-soft { transition: transform 0.05s ease, background-color 0.1s; }
-    .btn-soft:active { transform: scale(0.95); }
-
-    /* Toast Notification */
-    #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-    .toast { pointer-events: auto; background: #1e293b; border-left: 4px solid var(--accent-color); color: white; padding: 10px 16px; border-radius: 4px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); font-size: 0.9rem; animation: slideIn 0.2s ease-out forwards; display: flex; align-items: center; gap: 10px; min-width: 200px; }
-    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-    /* XP Bar */
-    .xp-bar-container { height: 10px; background: #000; border: 2px solid #373737; border-radius: 2px; position: relative; margin-top: 6px; }
-    .xp-fill { height: 100%; background: linear-gradient(to bottom, #80ff20 0%, #46aa06 100%); width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-    .xp-text { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-family: 'Press Start 2P', cursive; color: #80ff20; font-size: 8px; text-shadow: 1px 1px 0 #000; }
-
-    /* Grid Mode */
-    .grid-view-mode { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; }
-    .grid-view-mode .item-card { flex-direction: column; padding: 8px; text-align: center; height: 100%; justify-content: center; }
-    .grid-view-mode .item-card img { width: 32px; height: 32px; margin-bottom: 4px; }
-    .grid-view-mode .item-details { display: none; }
-    .grid-view-mode .item-badge { position: absolute; top: 2px; right: 2px; font-size: 8px; }
-
-    .enchanted { position: relative; overflow: hidden; }
-    .enchanted::after { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, transparent 0%, rgba(168, 85, 247, 0.2) 50%, transparent 100%); background-size: 200% 200%; animation: shimmer 3s infinite linear; pointer-events: none; }
-    @keyframes shimmer { 0% { background-position: 200% 200%; } 100% { background-position: -200% -200%; } }
+    /* Stepper Button Animation */
+    .stepper-btn:active { transform: scale(0.9); }
   </style>
 </head>
 
-<body class="min-h-screen font-sans selection:bg-purple-500/30">
+<body class="min-h-screen font-sans">
   <div id="bg-layer"></div>
-  
-  <div id="toast-container"></div>
+  <div id="bg-gradient"></div>
 
-  <div class="p-4 md:p-8">
-    <header class="max-w-7xl mx-auto mb-6 flex flex-col xl:flex-row justify-between items-center gap-4">
+  <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
+
+  <div class="p-4 md:p-6 max-w-7xl mx-auto transition-all duration-500" id="mainApp">
+    
+    <header class="flex flex-col md:flex-row justify-between items-center gap-6 mb-8 animate-popup">
       <div class="flex items-center gap-4">
-          <div>
-              <h1 class="text-3xl md:text-4xl font-bold text-white drop-shadow-md flex items-center gap-2 tracking-tight">
-                  MC <span class="theme-text">Manager</span>
-                  <span class="text-[10px] bg-emerald-500 text-black px-1.5 py-0.5 rounded font-bold shadow-[0_0_10px_rgba(16,185,129,0.4)]">LITE</span>
-              </h1>
-              <div class="w-48 relative mt-3">
-                  <span class="xp-text" id="levelDisplay">LVL 0</span>
-                  <div class="xp-bar-container"><div id="globalXpBar" class="xp-fill"></div></div>
-              </div>
+        <div class="relative group">
+          <div class="w-14 h-14 bg-slate-800 rounded-xl flex items-center justify-center border-2 border-slate-600 shadow-lg group-hover:border-[var(--accent-color)] transition-colors">
+            <img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/diamond_pickaxe.png" class="w-8 h-8 pixel-art animate-float">
           </div>
+          <div class="absolute -bottom-1 -right-1 bg-emerald-500 text-black text-[10px] px-1.5 rounded font-bold">PRO</div>
+        </div>
+        <div>
+          <h1 class="text-3xl font-bold tracking-tight text-white drop-shadow-lg">MC <span class="text-[var(--accent-color)]">Manager</span></h1>
+          <div class="flex items-center gap-2 text-xs text-slate-400 mt-1">
+             <i class="fa-solid fa-server"></i> <span id="connectionStatus">Connected</span>
+             <span class="w-1 h-1 bg-slate-600 rounded-full"></span>
+             <span id="globalProgress">0% Completed</span>
+          </div>
+        </div>
       </div>
 
-      <div class="flex flex-wrap items-center justify-end gap-2">
-        <select id="biomeSelect" onchange="changeBiome(this.value)" class="bg-slate-800 text-xs text-white p-2 rounded border border-slate-600 outline-none hover:border-[var(--accent-color)] cursor-pointer focus:ring-1 ring-purple-500">
-          <option value="overworld">🌲 Overworld</option>
-          <option value="nether">🔥 Nether</option>
-          <option value="end">🌌 The End</option>
-        </select>
-        <button onclick="toggleSound()" id="soundBtn" class="w-8 h-8 flex items-center justify-center bg-slate-800 rounded border border-slate-600 hover:text-[var(--accent-color)] btn-soft"><i class="fa-solid fa-volume-high"></i></button>
-        <button onclick="backupData()" class="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded btn-soft"><i class="fa-solid fa-download"></i></button>
-        <button onclick="document.getElementById('fileInput').click()" class="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded btn-soft"><i class="fa-solid fa-upload"></i></button>
-        <input type="file" id="fileInput" class="hidden" onchange="restoreData(this)" />
-        <button onclick="openModal('projectModal')" class="theme-bg text-white px-4 py-2 rounded shadow-lg font-bold hover:brightness-110 active:scale-95 transition-all btn-soft flex items-center gap-2 text-sm">
-          <i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">New Project</span>
+      <div class="flex gap-2 p-1.5 bg-slate-900/80 rounded-xl border border-slate-700 backdrop-blur-sm">
+        <button onclick="changeBiome('overworld')" class="w-9 h-9 rounded-lg hover:bg-slate-700 flex items-center justify-center text-emerald-400 transition-all tooltip" title="Overworld"><i class="fa-solid fa-tree"></i></button>
+        <button onclick="changeBiome('nether')" class="w-9 h-9 rounded-lg hover:bg-slate-700 flex items-center justify-center text-red-500 transition-all tooltip" title="Nether"><i class="fa-solid fa-fire"></i></button>
+        <button onclick="changeBiome('end')" class="w-9 h-9 rounded-lg hover:bg-slate-700 flex items-center justify-center text-purple-400 transition-all tooltip" title="The End"><i class="fa-solid fa-eye"></i></button>
+        <div class="w-px bg-slate-700 mx-1"></div>
+        <button onclick="openModal('projectModal')" class="bg-[var(--accent-color)] text-white px-4 rounded-lg font-bold text-sm hover:brightness-110 shadow-lg shadow-purple-900/20 active:scale-95 transition-all">
+          <i class="fa-solid fa-plus mr-1"></i> New
         </button>
       </div>
     </header>
 
-    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <div class="lg:col-span-3 space-y-4">
-        <div class="glass-panel p-4 anim-card">
-          <div class="relative mb-3">
-            <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-500 text-sm"></i>
-            <input type="text" placeholder="Search..." oninput="filterProjects(this.value, 'search')" class="w-full bg-slate-900 border border-slate-600 rounded py-2 pl-9 text-sm text-white focus:border-[var(--accent-color)] outline-none" />
-          </div>
-          <div class="grid grid-cols-2 gap-2 mb-3">
-            <div class="bg-slate-900/50 p-2 rounded border border-slate-600 text-center"><span class="text-xl font-bold text-white block" id="totalProjects">-</span><span class="text-[9px] text-slate-400">PROJECTS</span></div>
-            <div class="bg-slate-900/50 p-2 rounded border border-slate-600 text-center"><span class="text-xl font-bold text-emerald-400 block" id="completionRate">0%</span><span class="text-[9px] text-slate-400">DONE</span></div>
-          </div>
-          <div class="space-y-1 text-sm">
-            <button onclick="filterProjects('all', 'cat')" class="w-full text-left px-3 py-1.5 rounded hover:bg-slate-700 text-slate-300 flex items-center gap-2 btn-soft"><i class="fa-solid fa-layer-group"></i> All</button>
-            <button onclick="filterProjects('farm', 'cat')" class="w-full text-left px-3 py-1.5 rounded hover:bg-slate-700 text-slate-300 flex items-center gap-2 btn-soft"><i class="fa-solid fa-wheat-awn text-emerald-400"></i> Farm</button>
-            <button onclick="filterProjects('build', 'cat')" class="w-full text-left px-3 py-1.5 rounded hover:bg-slate-700 text-slate-300 flex items-center gap-2 btn-soft"><i class="fa-solid fa-hammer text-blue-400"></i> Build</button>
-            <button onclick="filterProjects('redstone', 'cat')" class="w-full text-left px-3 py-1.5 rounded hover:bg-slate-700 text-slate-300 flex items-center gap-2 btn-soft"><i class="fa-solid fa-microchip text-red-400"></i> Redstone</button>
-          </div>
-          <div class="mt-3 pt-3 border-t border-slate-700 flex justify-between items-center text-xs text-slate-400">
-             <span>View:</span> <button onclick="toggleCompactMode()" id="compactBtn" class="text-slate-500 hover:text-white"><i class="fa-solid fa-toggle-off text-xl"></i></button>
-          </div>
-        </div>
-        <button onclick="openTrash()" class="w-full py-2.5 rounded border border-red-900/30 text-red-400 hover:bg-red-900/20 text-xs flex items-center justify-center gap-2 btn-soft glass-panel"><i class="fa-solid fa-trash-arrow-up"></i> Recycle Bin</button>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 pb-20" id="projectList">
       </div>
 
-      <div class="lg:col-span-9">
-        <div id="projectList" class="grid gap-3 pb-20 grid-cols-1 md:grid-cols-2 xl:grid-cols-3"></div>
-      </div>
+    <div id="emptyState" class="hidden flex-col items-center justify-center py-20 text-slate-500">
+      <img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/map.png" class="w-16 h-16 pixel-art opacity-50 mb-4 grayscale">
+      <p>No projects found. Start building!</p>
     </div>
   </div>
 
-  <div id="detailModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-200" style="backdrop-filter: blur(2px);">
-    <div class="glass-panel bg-slate-900 rounded-xl w-full max-w-4xl mx-4 overflow-hidden flex flex-col h-[85vh] shadow-2xl border border-slate-700 modal-panel transform scale-95 opacity-0 transition-all duration-200">
-      <div class="p-4 border-b border-slate-700 bg-slate-900 flex justify-between items-center">
-        <div class="flex items-center gap-3">
-          <div id="projectIconHeader" class="w-10 h-10 rounded bg-slate-800 flex items-center justify-center border border-slate-600 text-xl text-slate-300"></div>
+  <div id="detailModal" class="fixed inset-0 z-50 hidden transition-all duration-300">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('detailModal')"></div>
+    
+    <div class="absolute inset-4 md:inset-10 bg-[#0f172a]/95 rounded-2xl border border-slate-700 shadow-2xl flex flex-col overflow-hidden transform scale-95 opacity-0 transition-all duration-300 modal-content">
+      
+      <div class="h-16 border-b border-slate-700 flex items-center justify-between px-6 bg-slate-900/50">
+        <div class="flex items-center gap-4">
+          <button onclick="closeModal('detailModal')" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 transition-colors">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <div class="h-8 w-px bg-slate-700"></div>
           <div>
-            <h3 class="text-xl font-bold text-white truncate max-w-[150px] sm:max-w-xs" id="detailTitle">...</h3>
-            <div class="flex gap-2 text-[10px] text-slate-400 items-center">
-              <span class="bg-slate-800 px-1.5 py-0.5 rounded border border-slate-600" id="detailCat">-</span>
-              <button onclick="toggleNote()" class="hover:text-yellow-300"><i class="fa-solid fa-sticky-note"></i> Note</button>
-              <button onclick="toggleLayers()" class="hover:text-sky-300"><i class="fa-solid fa-layer-group"></i> Layer</button>
+            <h2 id="detailTitle" class="text-xl font-bold text-white leading-tight">Project Name</h2>
+            <div class="flex items-center gap-2 text-[10px] text-slate-400">
+              <span id="detailCat" class="uppercase tracking-wider">CATEGORY</span>
+              <span>•</span>
+              <span id="itemCountDisplay">0 Items</span>
             </div>
           </div>
         </div>
-        <div class="flex gap-1">
-           <button onclick="toggleGridView()" class="w-8 h-8 rounded hover:bg-slate-800 text-slate-400"><i class="fa-solid fa-border-all"></i></button>
-           <button onclick="copyProjectList()" class="w-8 h-8 rounded hover:bg-slate-800 text-slate-400"><i class="fa-solid fa-copy"></i></button>
-           <button onclick="closeModal('detailModal')" class="w-8 h-8 rounded hover:bg-red-900/50 hover:text-red-400 text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+
+        <div class="flex items-center gap-2">
+            <button onclick="toggleFocusMode()" id="focusBtn" class="p-2 rounded hover:bg-slate-700 text-slate-400 text-sm" title="Focus Mode"><i class="fa-solid fa-expand"></i></button>
+            <button onclick="copyToClipboard()" class="p-2 rounded hover:bg-slate-700 text-slate-400 text-sm" title="Copy Summary"><i class="fa-brands fa-discord"></i></button>
+            <div class="relative">
+                <input type="text" id="searchItems" placeholder="Search items..." oninput="filterItems(this.value)" 
+                       class="bg-slate-950 border border-slate-700 rounded-lg py-1.5 pl-8 pr-3 text-sm text-white focus:border-[var(--accent-color)] outline-none w-48 transition-all focus:w-64" />
+                <i class="fa-solid fa-search absolute left-2.5 top-2 text-slate-500 text-xs"></i>
+            </div>
         </div>
       </div>
 
-      <div id="projectNoteArea" class="hidden bg-yellow-900/10 p-2 border-b border-yellow-700/30"><textarea id="projectNoteInput" class="w-full bg-transparent text-white text-xs p-2 h-16 font-mono outline-none resize-none" placeholder="Notes..." onchange="saveNote()"></textarea></div>
-      <div id="projectLayerArea" class="hidden bg-sky-900/10 p-2 border-b border-sky-700/30"><textarea id="projectLayerInput" class="w-full bg-transparent text-white text-xs p-2 h-16 font-mono outline-none resize-none" placeholder="Layers..." onchange="saveLayers()"></textarea></div>
+      <div class="flex-1 overflow-hidden relative flex">
+         <div class="w-64 border-r border-slate-700 bg-slate-900/30 flex flex-col hidden md:flex">
+            <div class="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Sticky Notes</div>
+            <textarea id="projectNoteInput" onchange="saveNote()" class="flex-1 bg-transparent resize-none outline-none text-slate-300 text-sm p-3 placeholder-slate-600" placeholder="Type coordinates or notes here..."></textarea>
+         </div>
 
-      <div class="px-4 py-2 bg-[#0b1120] border-b border-slate-800 flex justify-between items-center text-xs text-slate-400">
-        <select id="itemSortSelect" onchange="changeItemSort(this.value)" class="bg-transparent border-none outline-none cursor-pointer hover:text-white"><option value="priority">Sort: Priority</option><option value="name">Name</option><option value="amount">Amount</option><option value="progress">Progress</option></select>
-        <span onclick="toggleStackDisplay()" class="cursor-pointer hover:text-white select-none"><i class="fa-solid fa-cubes-stacked"></i> Toggle Stacks</span>
+         <div class="flex-1 overflow-y-auto p-4 md:p-6" id="itemsScrollArea">
+            <div id="itemsContainer" class="space-y-3 max-w-4xl mx-auto"></div>
+            <div class="h-24"></div> </div>
       </div>
 
-      <div class="flex-1 overflow-y-auto p-4 bg-[#0b1120] space-y-2" id="itemsContainer"></div>
+      <div class="absolute bottom-0 left-0 right-0 bg-[#0f172a] border-t border-slate-700 p-4">
+        <form onsubmit="event.preventDefault(); handleAddItem();" class="max-w-4xl mx-auto flex gap-3 items-center">
+            <div class="relative flex-1 group">
+                <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                    <i class="fa-solid fa-cube text-slate-500"></i>
+                </div>
+                <input type="hidden" id="newItemId">
+                <input type="text" id="newItemName" placeholder="Add new item... (e.g. Redstone)" 
+                       class="w-full bg-slate-900 border border-slate-600 rounded-xl py-3 pl-10 pr-4 text-white focus:border-[var(--accent-color)] focus:ring-1 focus:ring-[var(--accent-color)] outline-none transition-all"
+                       oninput="searchGlobalItems(this.value)" autocomplete="off" />
+                
+                <div id="suggestionBox" class="absolute bottom-full left-0 right-0 mb-2 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl max-h-48 overflow-y-auto hidden z-20"></div>
+            </div>
 
-      <div class="p-3 bg-slate-900 border-t border-slate-700">
-        <form onsubmit="event.preventDefault(); handleAddItem();" class="flex gap-2">
-          <div class="relative flex-1"><input type="hidden" id="newItemId" /><input type="text" id="newItemName" placeholder="Item Name..." class="w-full bg-slate-950 border border-slate-600 rounded px-3 py-2 text-sm text-white focus:border-[var(--accent-color)] outline-none" oninput="searchItems(this.value)" /><div id="suggestionBox" class="hidden absolute bottom-full left-0 right-0 mb-1 bg-slate-800 border border-slate-600 rounded shadow-lg max-h-32 overflow-y-auto z-20"></div></div>
-          <select id="newItemPriority" class="bg-slate-950 border border-slate-600 rounded px-2 text-white text-xs outline-none"><option value="normal">Norm</option><option value="high">High</option><option value="low">Low</option></select>
-          <input type="number" id="newItemAmount" placeholder="#" class="w-16 bg-slate-950 border border-slate-600 rounded text-center text-white text-sm outline-none" />
-          <button type="submit" class="theme-bg px-3 rounded text-white hover:brightness-110"><i class="fa-solid fa-plus"></i></button>
+            <label class="cursor-pointer relative group">
+                <input type="checkbox" id="newItemPriority" class="peer sr-only">
+                <div class="w-11 h-11 rounded-xl bg-slate-900 border border-slate-600 flex items-center justify-center text-slate-500 peer-checked:text-red-400 peer-checked:border-red-500 peer-checked:bg-red-500/10 transition-all">
+                    <i class="fa-solid fa-fire"></i>
+                </div>
+                <span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-black px-2 py-1 rounded text-[10px] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">High Priority</span>
+            </label>
+
+            <button type="submit" class="w-12 h-11 bg-[var(--accent-color)] hover:bg-purple-500 text-white rounded-xl shadow-lg flex items-center justify-center transition-transform active:scale-95">
+                <i class="fa-solid fa-plus text-lg"></i>
+            </button>
         </form>
       </div>
     </div>
   </div>
 
-  <div id="projectModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
-    <div class="glass-panel bg-slate-900 p-6 rounded-lg w-full max-w-sm mx-4 modal-panel opacity-0 transform scale-95 transition-all">
-      <h3 class="text-lg font-bold mb-4 text-white">New Project</h3>
-      <input type="text" id="newProjectName" placeholder="Project Name" class="w-full bg-slate-950 border border-slate-600 rounded p-2 text-white mb-4 outline-none focus:border-[var(--accent-color)]" />
-      <div class="grid grid-cols-3 gap-2 mb-4">
-        <button onclick="selectCategory('farm')" class="cat-btn p-2 rounded border border-slate-700 bg-slate-800 text-slate-400 hover:text-white text-xs" id="cat-btn-farm">Farm</button>
-        <button onclick="selectCategory('build')" class="cat-btn p-2 rounded border border-slate-700 bg-slate-800 text-slate-400 hover:text-white text-xs" id="cat-btn-build">Build</button>
-        <button onclick="selectCategory('redstone')" class="cat-btn p-2 rounded border border-slate-700 bg-slate-800 text-slate-400 hover:text-white text-xs" id="cat-btn-redstone">Redstone</button>
-      </div>
-      <input type="hidden" id="selectedCat" value="build" />
-      <div class="flex justify-end gap-2"><button onclick="closeModal('projectModal')" class="px-3 py-1.5 text-xs text-slate-400 hover:text-white">Cancel</button><button onclick="handleAddProject()" class="theme-bg px-4 py-1.5 rounded text-white text-xs font-bold">Create</button></div>
-    </div>
-  </div>
-
-  <div id="trashModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[60]">
-    <div class="glass-panel bg-slate-900 rounded-lg w-full max-w-sm mx-4 p-4 modal-panel opacity-0 transform scale-95 transition-all">
-      <h3 class="font-bold text-red-400 mb-2">Recycle Bin</h3>
-      <div id="trashList" class="space-y-1 max-h-48 overflow-y-auto mb-2 text-sm"></div>
-      <div class="flex justify-end"><button onclick="closeModal('trashModal')" class="text-slate-400 text-xs">Close</button></div>
+  <div id="projectModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('projectModal')"></div>
+    <div class="glass-morphism p-6 rounded-2xl w-full max-w-sm m-4 relative transform scale-95 opacity-0 transition-all modal-content">
+        <h3 class="text-lg font-bold text-white mb-4">Create New Project</h3>
+        <div class="space-y-4">
+            <input type="text" id="newProjectName" placeholder="Project Name" class="w-full bg-slate-900/50 border border-slate-600 rounded-lg p-3 text-white outline-none focus:border-[var(--accent-color)]">
+            
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="selectCategory('farm')" id="cat-btn-farm" class="cat-btn p-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-emerald-900/30 hover:border-emerald-500/50 flex flex-col items-center gap-2 transition-all">
+                    <i class="fa-solid fa-wheat-awn text-emerald-400"></i> <span class="text-xs">Farm</span>
+                </button>
+                <button onclick="selectCategory('build')" id="cat-btn-build" class="cat-btn p-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-blue-900/30 hover:border-blue-500/50 flex flex-col items-center gap-2 transition-all active-cat">
+                    <i class="fa-solid fa-hammer text-blue-400"></i> <span class="text-xs">Build</span>
+                </button>
+                <button onclick="selectCategory('redstone')" id="cat-btn-redstone" class="cat-btn p-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-red-900/30 hover:border-red-500/50 flex flex-col items-center gap-2 transition-all">
+                    <i class="fa-solid fa-microchip text-red-400"></i> <span class="text-xs">Redstone</span>
+                </button>
+            </div>
+            <input type="hidden" id="selectedCat" value="build">
+            
+            <button onclick="handleAddProject()" class="w-full bg-[var(--accent-color)] py-3 rounded-lg text-white font-bold shadow-lg hover:brightness-110 active:scale-95 transition-all">Create Project</button>
+        </div>
     </div>
   </div>
 
@@ -232,8 +254,9 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, set, remove, update, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, push, set, remove, update, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+    // --- Firebase Config (Your Keys) ---
     const firebaseConfig = {
       apiKey: "AIzaSyAn2Pg3uFbIshFVpV1ysNprfIRdFMQ4ZWM",
       authDomain: "minecraft-deken-project.firebaseapp.com",
@@ -244,235 +267,391 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Optimized State Management
+    // --- State Management ---
     let state = {
       projects: [],
-      trash: JSON.parse(localStorage.getItem("mcTrash") || "[]"),
       currentId: null,
-      isCompact: localStorage.getItem("mcCompact") === "true",
-      isGrid: localStorage.getItem("mcGridView") === "true",
-      sound: localStorage.getItem("mcSound") === "true",
-      filterCat: "all",
-      search: "",
-      sort: "priority",
-      showStacks: false
+      filterSearch: "",
+      globalItems: [],
+      isFocusMode: false
     };
-
-    let globalItems = [];
+    
     let textures = { server: {}, custom: JSON.parse(localStorage.getItem("mcCustomTextures") || "{}") };
     let textureUploadId = null;
 
-    // AUDIO (Optimized: Re-use context)
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const playSound = (type) => {
-      if (!state.sound || audioCtx.state === 'suspended') audioCtx.resume();
-      if (!state.sound) return;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain); gain.connect(audioCtx.destination);
-      const now = audioCtx.currentTime;
-      if (type === 'click') {
-        osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
-        gain.gain.setValueAtTime(0.05, now); gain.gain.linearRampToValueAtTime(0, now + 0.1);
-        osc.start(now); osc.stop(now + 0.1);
-      } else if (type === 'success') {
-        osc.frequency.setValueAtTime(400, now); osc.frequency.setValueAtTime(800, now + 0.1);
-        gain.gain.setValueAtTime(0.05, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
-        osc.start(now); osc.stop(now + 0.3);
-      }
-    };
-
-    // UTILS
-    window.showToast = (msg) => {
-      const t = document.createElement('div');
-      t.className = 'toast'; t.innerHTML = `<i class="fa-solid fa-info-circle"></i><span>${msg}</span>`;
-      document.getElementById('toast-container').appendChild(t);
-      setTimeout(() => t.remove(), 2500);
-    };
-
-    // Debounce Function (หัวใจสำคัญของความลื่น)
-    const debounce = (func, wait) => {
-      let timeout;
-      return function executedFunction(...args) {
-        const later = () => { clearTimeout(timeout); func(...args); };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-      };
-    };
-
-    // INIT DATA
+    // --- Initialization ---
+    // Fetch Items List for Auto-complete
     fetch("https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/pc/1.20/items.json")
-      .then(r=>r.json()).then(d => globalItems = d.map(i => ({ id: i.name, name: i.displayName }))).catch(()=> globalItems=[{id:'stone',name:'Stone'}]);
+      .then(r => r.json())
+      .then(d => state.globalItems = d.map(i => ({ id: i.name, name: i.displayName })))
+      .catch(() => console.log("Failed to load items"));
 
-    // FIREBASE LISTENER (Optimized with Debounce)
-    const handleDataUpdate = debounce((snapshot) => {
+    // --- Render Logic ---
+    onValue(ref(db, "projects"), (snapshot) => {
       const data = snapshot.val();
       state.projects = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })).reverse() : [];
-      renderProjects();
-      updateDashboard();
-      if (state.currentId) renderItems(); // Only render items if modal is open
-    }, 100); // รอ 100ms ก่อนวาดหน้าจอ
+      renderDashboard();
+      if(state.currentId) renderItems();
+    });
 
-    onValue(ref(db, "projects"), handleDataUpdate);
     onValue(ref(db, "textures"), (s) => { textures.server = s.val() || {}; if(state.currentId) renderItems(); });
 
-    // RENDERING LOGIC (String Concat vs DOM Thrashing)
-    function renderProjects() {
-      const container = document.getElementById("projectList");
-      const filtered = state.projects.filter(p => 
-        (state.filterCat === "all" || p.category === state.filterCat) &&
-        (!state.search || p.name.toLowerCase().includes(state.search))
-      );
-      
-      if (state.isCompact) container.classList.add("grid-cols-1"); else container.classList.remove("grid-cols-1");
-
-      // สร้าง HTML string ก้อนเดียวก่อน แล้วค่อยยัดใส่ innerHTML
-      const html = filtered.map(p => {
-        const items = p.items ? Object.values(p.items) : [];
-        const done = items.filter(i => i.completed).length;
-        const prog = items.length ? Math.round((done / items.length) * 100) : 0;
-        const icon = { farm: "fa-wheat-awn text-emerald-400", build: "fa-hammer text-blue-400", redstone: "fa-microchip text-red-400" }[p.category || "build"];
+    function renderDashboard() {
+        const container = document.getElementById("projectList");
+        const empty = document.getElementById("emptyState");
         
-        if (state.isCompact) {
-          return `<div onclick="openProject('${p.id}')" class="glass-panel anim-card hover-pop p-3 flex justify-between items-center hover:bg-slate-800 cursor-pointer border-l-4 border-l-[var(--accent-color)]">
-            <div class="flex items-center gap-3"><i class="fa-solid ${icon}"></i><span class="font-medium text-sm">${p.name}</span></div>
-            <div class="flex items-center gap-3"><div class="w-20 bg-slate-900 rounded-full h-1.5"><div class="theme-bg h-full rounded-full transition-all" style="width:${prog}%"></div></div><span class="text-[10px] text-slate-400">${done}/${items.length}</span></div>
-          </div>`;
-        } else {
-          return `<div onclick="openProject('${p.id}')" class="glass-panel anim-card hover-pop p-4 rounded-lg cursor-pointer hover:bg-slate-800 hover:border-[var(--accent-color)] relative group">
-            <div class="flex justify-between items-start mb-3">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center relative bg-slate-900 shadow-inner">
-                    <div class="absolute inset-0 flex items-center justify-center text-[9px] font-bold">${prog}%</div>
-                    <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36"><path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1e293b" stroke-width="3" /><path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--accent-color)" stroke-width="3" stroke-dasharray="${prog}, 100" class="transition-all duration-500" /></svg>
-                </div>
-                <div><h3 class="font-bold text-sm text-white truncate max-w-[120px]">${p.name}</h3><span class="text-[9px] uppercase text-slate-500 font-bold bg-slate-900 px-1.5 rounded">${p.category}</span></div>
-              </div>
-              <button onclick="deleteProject('${p.id}',event)" class="text-slate-600 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-trash"></i></button>
-            </div>
-            <div class="flex justify-between text-[10px] text-slate-400 mt-2 border-t border-slate-700/50 pt-2"><span>${items.length} Items</span><span>${done} Done</span></div>
-          </div>`;
+        if (state.projects.length === 0) {
+            container.innerHTML = "";
+            empty.classList.remove("hidden");
+            empty.classList.add("flex");
+            return;
         }
-      }).join('');
-      
-      container.innerHTML = html;
-    }
+        empty.classList.add("hidden");
+        empty.classList.remove("flex");
 
-    // ACTIONS
-    window.openProject = (id) => {
-      state.currentId = id;
-      const p = state.projects.find(x => x.id === id);
-      if(!p) return;
-      document.getElementById("detailTitle").innerText = p.name;
-      document.getElementById("detailCat").innerText = p.category;
-      document.getElementById("projectNoteInput").value = p.notes || "";
-      document.getElementById("projectLayerInput").value = p.layers || "";
-      document.getElementById("projectIconHeader").innerHTML = `<i class="fa-solid ${p.category === 'farm' ? 'fa-wheat-awn' : p.category === 'redstone' ? 'fa-microchip' : 'fa-hammer'}"></i>`;
-      renderItems();
-      openModal("detailModal");
-    };
+        // Calculate Global Progress
+        let totalItems = 0;
+        let totalDone = 0;
 
-    window.renderItems = () => {
-      const container = document.getElementById("itemsContainer");
-      const p = state.projects.find(x => x.id === state.currentId);
-      if(!p || !p.items) { container.innerHTML = '<div class="text-center text-slate-500 py-10 text-xs">No items</div>'; return; }
-      
-      container.className = state.isGrid ? "flex-1 overflow-y-auto p-4 bg-[#0b1120] grid-view-mode" : "flex-1 overflow-y-auto p-4 bg-[#0b1120] space-y-2";
-      
-      const items = Object.keys(p.items).map(k => ({id:k, ...p.items[k]})).sort((a,b) => {
-        if(state.sort==='priority') return (a.priority==='high'?0:1) - (b.priority==='high'?0:1);
-        return 0; // Simplified sort for performance
-      });
+        const html = state.projects.map(p => {
+            const items = p.items ? Object.values(p.items) : [];
+            const done = items.filter(i => i.completed).length;
+            const percent = items.length ? Math.round((done / items.length) * 100) : 0;
+            
+            totalItems += items.length;
+            totalDone += done;
 
-      const html = items.map(item => {
-         const pct = Math.round(((item.current||0)/(item.amount||1))*100);
-         const tex = textures.server[item.itemId] || textures.custom[item.itemId] || `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${item.itemId}.png`;
-         const displayAmt = state.showStacks ? (Math.floor(item.amount/64) > 0 ? `${Math.floor(item.amount/64)}s + ${item.amount%64}` : item.amount) : item.amount;
-         const isDone = item.completed;
+            // Icons & Colors
+            const theme = p.category === 'farm' ? 'emerald' : p.category === 'redstone' ? 'red' : 'blue';
+            const icon = p.category === 'farm' ? 'fa-wheat-awn' : p.category === 'redstone' ? 'fa-microchip' : 'fa-hammer';
+            
+            return `
+            <div onclick="openProject('${p.id}')" class="glass-morphism rounded-xl p-5 cursor-pointer card-3d group relative overflow-hidden">
+                <div class="absolute -right-10 -top-10 w-32 h-32 bg-${theme}-500/10 rounded-full blur-2xl group-hover:bg-${theme}-500/20 transition-all"></div>
+                
+                <div class="flex justify-between items-start mb-4 relative z-10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-slate-800/80 border border-slate-700 flex items-center justify-center text-${theme}-400 shadow-inner">
+                            <i class="fa-solid ${icon}"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-base truncate max-w-[140px]">${p.name}</h3>
+                            <div class="text-[10px] text-slate-400 uppercase tracking-wide font-semibold">${p.category}</div>
+                        </div>
+                    </div>
+                    <button onclick="deleteProject('${p.id}', event)" class="w-6 h-6 rounded flex items-center justify-center text-slate-600 hover:text-red-400 hover:bg-red-400/10 transition-colors opacity-0 group-hover:opacity-100">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </div>
 
-         return `<div class="item-card relative overflow-hidden rounded border transition-all hover:bg-slate-800 ${isDone ? 'border-emerald-900/50 bg-emerald-900/10 opacity-60' : 'border-slate-700 bg-slate-800/40'} ${item.priority==='high' && !isDone ? 'enchanted' : ''}">
-            <div class="absolute top-0 left-0 bg-[var(--accent-color)] opacity-5 h-full transition-all duration-500" style="width:${pct}%"></div>
-            <div class="relative flex items-center gap-3 p-2">
-               <button onclick="toggleItem('${item.id}',${isDone},${item.amount})" class="w-5 h-5 rounded border flex items-center justify-center shrink-0 ${isDone?'bg-emerald-500 border-emerald-500':'border-slate-600'}">${isDone?'<i class="fa-solid fa-check text-[10px] text-white"></i>':''}</button>
-               <img src="${tex}" class="w-6 h-6 pixel-art cursor-pointer" onclick="uploadTex('${item.itemId}')" onerror="this.src='https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/barrier.png'">
-               <div class="flex-1 min-w-0 flex flex-col justify-center text-left">
-                  <div class="flex items-center"><span class="text-xs font-medium text-slate-200 truncate">${item.name}</span>${item.priority==='high'?'<span class="text-[8px] text-red-400 ml-1">🔥</span>':''}</div>
-                  <div class="w-full bg-slate-700/50 h-0.5 rounded-full mt-1 item-details"><div class="theme-bg h-full" style="width:${pct}%"></div></div>
-               </div>
-               <div class="flex items-center gap-1 bg-slate-950/50 rounded px-1 border border-slate-700 item-details">
-                  <input type="number" value="${item.current||0}" onchange="updProg('${item.id}',this.value,${item.amount})" class="w-8 bg-transparent text-right text-white outline-none font-mono text-[10px]">
-                  <span class="text-slate-500 text-[9px]">/${displayAmt}</span>
-               </div>
-               <button onclick="delItem('${item.id}')" class="text-slate-600 hover:text-red-400 px-1 item-details"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                <div class="space-y-1 relative z-10">
+                    <div class="flex justify-between text-xs text-slate-300">
+                        <span>Progress</span>
+                        <span class="${percent === 100 ? 'text-green-400 font-bold' : ''}">${percent}%</span>
+                    </div>
+                    <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-${theme}-500 to-${theme}-400 transition-all duration-1000 ease-out" style="width: ${percent}%"></div>
+                    </div>
+                </div>
             </div>
-         </div>`;
-      }).join('');
-      
-      container.innerHTML = html;
-    };
+            `;
+        }).join('');
 
-    // GLOBAL FUNCS
-    window.toggleItem = (id, done, amt) => {
-        if(!done) { confetti({particleCount:30, spread:50, origin:{y:0.7}, disableForReducedMotion:true}); playSound('success'); }
-        update(ref(db, `projects/${state.currentId}/items/${id}`), { completed: !done, current: !done ? amt : 0 });
-    };
-    window.updProg = (id, val, max) => {
-        const v = Math.min(max, Math.max(0, parseInt(val)||0));
-        update(ref(db, `projects/${state.currentId}/items/${id}`), { current: v, completed: v>=max });
-    };
-    window.delItem = (id) => { if(confirm('Delete?')) remove(ref(db, `projects/${state.currentId}/items/${id}`)); };
-    window.handleAddItem = () => {
-       const n = document.getElementById("newItemName").value;
-       const a = document.getElementById("newItemAmount").value || 1;
-       const p = document.getElementById("newItemPriority").value;
-       if(n && state.currentId) {
-          push(ref(db, `projects/${state.currentId}/items`), { name: n, itemId: document.getElementById("newItemId").value || n.toLowerCase(), amount: a, current:0, completed:false, priority:p });
-          document.getElementById("newItemName").value = "";
-          playSound('click');
-       }
-    };
-    
-    // UI UTILS
-    window.toggleCompactMode = () => { state.isCompact = !state.isCompact; localStorage.setItem("mcCompact", state.isCompact); document.getElementById("compactBtn").innerHTML = state.isCompact ? '<i class="fa-solid fa-toggle-on text-emerald-400 text-xl"></i>' : '<i class="fa-solid fa-toggle-off text-xl"></i>'; renderProjects(); };
-    window.toggleGridView = () => { state.isGrid = !state.isGrid; localStorage.setItem("mcGridView", state.isGrid); renderItems(); };
-    window.toggleSound = () => { state.sound = !state.sound; localStorage.setItem("mcSound", state.sound); document.getElementById("soundBtn").classList.toggle("text-slate-500"); };
-    window.toggleStackDisplay = () => { state.showStacks = !state.showStacks; renderItems(); };
-    window.changeBiome = (v) => { 
-        const bg = document.getElementById('bg-layer');
-        if(v==='nether') { bg.style.backgroundImage = 'linear-gradient(rgba(20,5,5,0.9),rgba(20,5,5,0.95)), url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/netherrack.png")'; document.documentElement.style.setProperty('--accent-color','#ef4444'); }
-        else if(v==='end') { bg.style.backgroundImage = 'linear-gradient(rgba(5,5,15,0.9),rgba(5,5,15,0.95)), url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/end_stone.png")'; document.documentElement.style.setProperty('--accent-color','#d946ef'); }
-        else { bg.style.backgroundImage = 'linear-gradient(rgba(15,23,42,0.85),rgba(15,23,42,0.95)), url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/dirt.png")'; document.documentElement.style.setProperty('--accent-color','#8b5cf6'); }
-    };
-    window.filterProjects = (v, t) => { if(t==='search') state.search=v.toLowerCase(); else state.filterCat=v; renderProjects(); };
-    window.uploadTex = (id) => { textureUploadId = id; document.getElementById("textureInput").click(); };
-    window.handleTextureUpload = (el) => { const f=el.files[0]; if(f){ const r=new FileReader(); r.onload=(e)=>{ set(ref(db, "textures/"+textureUploadId), e.target.result); }; r.readAsDataURL(f); } el.value=''; };
-    window.fallbackTexture = (i) => i.src = 'https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/barrier.png';
-
-    // MODALS
-    window.openModal = (id) => { const m=document.getElementById(id); m.classList.remove("hidden"); setTimeout(()=>m.querySelector(".modal-panel").classList.remove("opacity-0","scale-95"),10); };
-    window.closeModal = (id) => { const m=document.getElementById(id); m.querySelector(".modal-panel").classList.add("opacity-0","scale-95"); setTimeout(()=>m.classList.add("hidden"),200); };
-    window.selectCategory = (c) => { document.querySelectorAll(".cat-btn").forEach(b=>b.classList.remove("bg-slate-600","text-white")); document.getElementById("cat-btn-"+c).classList.add("bg-slate-600","text-white"); document.getElementById("selectedCat").value=c; };
-    window.handleAddProject = () => { const n=document.getElementById("newProjectName").value; if(n){ push(ref(db,"projects"),{name:n,category:document.getElementById("selectedCat").value}); closeModal("projectModal"); document.getElementById("newProjectName").value=""; } };
-    
-    // DASHBOARD & TRASH
-    function updateDashboard() {
-        const total = state.projects.length;
-        const allItems = state.projects.reduce((a,p)=>a+(p.items?Object.keys(p.items).length:0),0);
-        const done = state.projects.reduce((a,p)=>a+(p.items?Object.values(p.items).filter(i=>i.completed).length:0),0);
-        document.getElementById("totalProjects").innerText = total;
-        document.getElementById("completionRate").innerText = allItems ? Math.round((done/allItems)*100)+"%" : "0%";
-        document.getElementById("globalXpBar").style.width = allItems ? (done/allItems)*100+"%" : "0%";
-        document.getElementById("levelDisplay").innerText = "LVL "+Math.floor(done/5);
+        container.innerHTML = html;
+        document.getElementById("globalProgress").innerText = totalItems ? Math.round((totalDone/totalItems)*100) + "% Done" : "0% Done";
     }
-    window.deleteProject = (id,e) => { e.stopPropagation(); const p=state.projects.find(x=>x.id===id); if(confirm("Delete?")){ state.trash.push(p); localStorage.setItem("mcTrash",JSON.stringify(state.trash)); remove(ref(db,`projects/${id}`)); } };
-    window.openTrash = () => { document.getElementById("trashList").innerHTML = state.trash.map((p,i)=>`<div class="flex justify-between bg-slate-800 p-2 rounded border border-slate-700 text-slate-300"><span>${p.name}</span><button onclick="restoreProject(${i})" class="text-green-400 hover:text-green-300"><i class="fa-solid fa-rotate-left"></i></button></div>`).join(""); openModal("trashModal"); };
-    window.restoreProject = (i) => { push(ref(db,"projects"),state.trash[i]); state.trash.splice(i,1); localStorage.setItem("mcTrash",JSON.stringify(state.trash)); openTrash(); };
-    window.searchItems = (v) => {
-        const b = document.getElementById("suggestionBox");
-        if(!v){ b.classList.add("hidden"); return; }
-        b.innerHTML = globalItems.filter(i=>i.name.toLowerCase().includes(v.toLowerCase())).slice(0,5).map(i=>`<div class="p-2 hover:bg-slate-700 cursor-pointer flex gap-2 items-center text-xs text-slate-300" onclick="document.getElementById('newItemName').value='${i.name}';document.getElementById('newItemId').value='${i.id}';this.parentElement.classList.add('hidden')"><img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${i.id}.png" class="w-4 h-4 pixel-art">${i.name}</div>`).join("");
-        b.classList.remove("hidden");
+
+    // --- Item Logic & The New UI ---
+    window.renderItems = () => {
+        const p = state.projects.find(x => x.id === state.currentId);
+        if(!p) return;
+
+        // Metadata Update
+        document.getElementById("detailTitle").innerText = p.name;
+        document.getElementById("detailCat").innerText = p.category;
+        document.getElementById("projectNoteInput").value = p.notes || "";
+        document.getElementById("itemCountDisplay").innerText = (p.items ? Object.keys(p.items).length : 0) + " Items";
+
+        const container = document.getElementById("itemsContainer");
+        const items = p.items ? Object.keys(p.items).map(k => ({id: k, ...p.items[k]})) : [];
+
+        // Sorting: High Priority First, then Incomplete
+        items.sort((a,b) => {
+            if(a.priority === 'high' && b.priority !== 'high') return -1;
+            if(a.priority !== 'high' && b.priority === 'high') return 1;
+            return Number(a.completed) - Number(b.completed);
+        });
+
+        const filter = document.getElementById("searchItems").value.toLowerCase();
+        
+        container.innerHTML = items.filter(i => i.name.toLowerCase().includes(filter)).map(item => {
+            const tex = textures.server[item.itemId] || textures.custom[item.itemId] || `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${item.itemId}.png`;
+            const isDone = item.completed;
+            const current = item.current || 0;
+            const max = item.amount || 1;
+            const percent = Math.min(100, Math.round((current/max)*100));
+
+            // THE NEW UI ROW
+            return `
+            <div class="group relative flex items-center gap-4 bg-slate-800/40 border border-slate-700/50 hover:border-slate-500 rounded-xl p-3 transition-all ${isDone ? 'opacity-50 grayscale-[0.5]' : ''} ${item.priority==='high' ? 'border-l-4 border-l-red-500 bg-red-900/10' : ''}">
+                
+                <div class="flex items-center gap-3 pl-1">
+                    <input type="checkbox" class="mc-checkbox" ${isDone ? 'checked' : ''} onchange="toggleItem('${item.id}', this.checked, ${max})">
+                    <div class="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center border border-slate-700 relative cursor-pointer hover:border-[var(--accent-color)]" onclick="uploadTex('${item.itemId}')">
+                        <img src="${tex}" class="w-7 h-7 pixel-art object-contain" onerror="this.src='https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/barrier.png'">
+                    </div>
+                </div>
+
+                <div class="flex-1 min-w-0 flex flex-col justify-center">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="font-medium text-slate-200 truncate ${isDone ? 'line-through text-slate-500' : ''}">${item.name}</span>
+                        ${item.priority === 'high' ? '<i class="fa-solid fa-fire text-red-500 text-xs animate-pulse"></i>' : ''}
+                    </div>
+                    <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-700/50">
+                        <div class="h-full bg-emerald-500 transition-all duration-300" style="width: ${percent}%"></div>
+                    </div>
+                </div>
+
+                <div class="flex items-center bg-slate-950 rounded-lg border border-slate-700 p-0.5 select-none shadow-inner">
+                    <button class="w-8 h-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 rounded stepper-btn transition-colors" 
+                            onmousedown="adjustAmount('${item.id}', -1, ${current}, ${max})"><i class="fa-solid fa-minus text-xs"></i></button>
+                    
+                    <div class="w-12 text-center text-xs font-mono font-bold text-white cursor-text" onclick="promptAmount('${item.id}', ${max})">
+                        <span class="${current >= max ? 'text-green-400' : 'text-slate-200'}">${current}</span><span class="text-slate-500">/${max}</span>
+                    </div>
+
+                    <button class="w-8 h-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 rounded stepper-btn transition-colors" 
+                            onmousedown="adjustAmount('${item.id}', 1, ${current}, ${max})"><i class="fa-solid fa-plus text-xs"></i></button>
+                </div>
+
+                <button onclick="delItem('${item.id}')" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-500/20 text-slate-600 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            `;
+        }).join('');
     };
+
+    // --- Interactive Functions ---
+
+    window.openProject = (id) => {
+        state.currentId = id;
+        renderItems();
+        const m = document.getElementById("detailModal");
+        m.classList.remove("hidden");
+        setTimeout(() => {
+            m.querySelector(".modal-content").classList.remove("scale-95", "opacity-0");
+            m.querySelector(".modal-content").classList.add("scale-100", "opacity-100");
+        }, 10);
+    };
+
+    window.closeModal = (id) => {
+        const m = document.getElementById(id);
+        m.querySelector(".modal-content").classList.remove("scale-100", "opacity-100");
+        m.querySelector(".modal-content").classList.add("scale-95", "opacity-0");
+        setTimeout(() => m.classList.add("hidden"), 300);
+        if(id === 'detailModal') state.currentId = null;
+    };
+
+    // The Stepper Logic
+    window.adjustAmount = (itemId, delta, current, max) => {
+        const newVal = Math.max(0, Math.min(max, current + delta));
+        const isComplete = newVal >= max;
+        update(ref(db, `projects/${state.currentId}/items/${itemId}`), { 
+            current: newVal, 
+            completed: isComplete 
+        });
+        if(isComplete && delta > 0) showAchievement("Item Completed!", "emerald");
+    };
+
+    window.toggleItem = (id, isChecked, max) => {
+        update(ref(db, `projects/${state.currentId}/items/${id}`), {
+            completed: isChecked,
+            current: isChecked ? max : 0
+        });
+        if(isChecked) {
+            confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+            showAchievement("Task Done!", "gold");
+        }
+    };
+
+    // Add Item Logic
+    window.handleAddItem = () => {
+        const name = document.getElementById("newItemName").value;
+        const priority = document.getElementById("newItemPriority").checked ? "high" : "normal";
+        const rawId = document.getElementById("newItemId").value;
+        const itemId = rawId || name.toLowerCase().replace(/\s+/g, '_');
+        
+        if (!name || !state.currentId) return;
+
+        // Default amount is 64 (1 stack) unless specified otherwise logic could be added
+        push(ref(db, `projects/${state.currentId}/items`), {
+            name: name,
+            itemId: itemId,
+            amount: 64, // Default Stack
+            current: 0,
+            completed: false,
+            priority: priority
+        });
+
+        document.getElementById("newItemName").value = "";
+        document.getElementById("newItemId").value = "";
+        document.getElementById("newItemPriority").checked = false;
+        document.getElementById("suggestionBox").classList.add("hidden");
+        
+        // Scroll to bottom
+        setTimeout(() => {
+             const scrollArea = document.getElementById("itemsScrollArea");
+             scrollArea.scrollTo({ top: scrollArea.scrollHeight, behavior: 'smooth' });
+        }, 200);
+    };
+
+    // Prompt for manual number entry
+    window.promptAmount = (itemId, max) => {
+        const val = prompt(`Set amount (Max: ${max}):`);
+        if(val !== null) {
+            const num = parseInt(val);
+            if(!isNaN(num)) window.adjustAmount(itemId, num - (parseInt(val)||0) /* tricky hack but simple update works */, 0, max);
+            update(ref(db, `projects/${state.currentId}/items/${itemId}`), { current: Math.min(max, Math.max(0, num)), completed: num >= max });
+        }
+    };
+
+    // Feature: Copy Summary for Discord
+    window.copyToClipboard = () => {
+        const p = state.projects.find(x => x.id === state.currentId);
+        if(!p) return;
+        const items = Object.values(p.items || {});
+        const todo = items.filter(i => !i.completed);
+        
+        let text = `**🔨 Project: ${p.name}**\n`;
+        text += `Progress: ${Math.round(((items.length-todo.length)/items.length)*100)}%\n\n`;
+        text += `**To Collect:**\n`;
+        todo.forEach(i => {
+            text += `• ${i.name}: ${i.current}/${i.amount}\n`;
+        });
+        
+        navigator.clipboard.writeText(text);
+        showAchievement("Copied to Clipboard!", "blue");
+    };
+
+    // Feature: Focus Mode
+    window.toggleFocusMode = () => {
+        state.isFocusMode = !state.isFocusMode;
+        const m = document.getElementById("detailModal").querySelector(".modal-content");
+        if(state.isFocusMode) {
+            m.classList.add("fixed", "inset-0", "z-[100]", "rounded-none");
+            m.classList.remove("rounded-2xl", "m-4", "border");
+            document.getElementById("focusBtn").innerHTML = '<i class="fa-solid fa-compress"></i>';
+        } else {
+            m.classList.remove("fixed", "inset-0", "z-[100]", "rounded-none");
+            m.classList.add("rounded-2xl", "border");
+            document.getElementById("focusBtn").innerHTML = '<i class="fa-solid fa-expand"></i>';
+        }
+    };
+
+    // Toast Notification System
+    window.showAchievement = (text, color) => {
+        const t = document.createElement("div");
+        t.className = "achievement-toast";
+        
+        let icon = "fa-trophy";
+        if(color === 'emerald') icon = "fa-check";
+        if(color === 'blue') icon = "fa-clipboard";
+
+        t.innerHTML = `
+            <div class="w-8 h-8 bg-slate-800 border-2 border-white flex items-center justify-center">
+                <i class="fa-solid ${icon} text-${color}-400"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-xs text-yellow-200 mb-0.5">Achievement Get!</span>
+                <span>${text}</span>
+            </div>
+        `;
+        document.getElementById("toast-container").appendChild(t);
+        setTimeout(() => t.remove(), 4000);
+    };
+
+    // Helpers
+    window.delItem = (id) => { if(confirm("Remove item?")) remove(ref(db, `projects/${state.currentId}/items/${id}`)); };
+    window.deleteProject = (id, e) => { e.stopPropagation(); if(confirm("Delete Project?")) remove(ref(db, `projects/${id}`)); };
+    window.saveNote = () => update(ref(db, `projects/${state.currentId}`), { notes: document.getElementById("projectNoteInput").value });
+    
+    // Search Autocomplete
+    window.searchGlobalItems = (val) => {
+        const box = document.getElementById("suggestionBox");
+        if(val.length < 2) { box.classList.add("hidden"); return; }
+        
+        const matches = state.globalItems.filter(i => i.name.toLowerCase().includes(val.toLowerCase())).slice(0, 10);
+        if(matches.length > 0) {
+            box.innerHTML = matches.map(i => `
+                <div class="flex items-center gap-2 p-2 hover:bg-slate-700 cursor-pointer text-sm text-slate-300 transition-colors"
+                     onclick="selectSuggestion('${i.name}', '${i.id}')">
+                    <img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${i.id}.png" class="w-5 h-5 pixel-art">
+                    ${i.name}
+                </div>
+            `).join('');
+            box.classList.remove("hidden");
+        } else {
+            box.classList.add("hidden");
+        }
+    };
+
+    window.selectSuggestion = (name, id) => {
+        document.getElementById("newItemName").value = name;
+        document.getElementById("newItemId").value = id;
+        document.getElementById("suggestionBox").classList.add("hidden");
+    };
+
+    // UI Toggles
+    window.selectCategory = (cat) => {
+        document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("border-[var(--accent-color)]", "bg-slate-700"));
+        document.getElementById("cat-btn-"+cat).classList.add("border-[var(--accent-color)]", "bg-slate-700");
+        document.getElementById("selectedCat").value = cat;
+    };
+    
+    window.handleAddProject = () => {
+        const name = document.getElementById("newProjectName").value;
+        const cat = document.getElementById("selectedCat").value;
+        if(name) {
+            push(ref(db, "projects"), { name, category: cat, items: {} });
+            closeModal("projectModal");
+            document.getElementById("newProjectName").value = "";
+            showAchievement("New Journey!", "gold");
+        }
+    };
+
+    window.changeBiome = (b) => {
+        const bg = document.getElementById("bg-layer");
+        const root = document.documentElement;
+        if(b === 'nether') {
+            bg.style.backgroundImage = 'url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/netherrack.png")';
+            bg.style.filter = "brightness(0.3) sepia(0.5) hue-rotate(-50deg)";
+            root.style.setProperty('--accent-color', '#ef4444');
+        } else if(b === 'end') {
+            bg.style.backgroundImage = 'url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/end_stone.png")';
+            bg.style.filter = "brightness(0.2) hue-rotate(240deg)";
+            root.style.setProperty('--accent-color', '#d946ef');
+        } else {
+            bg.style.backgroundImage = 'url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/stone.png")';
+            bg.style.filter = "brightness(0.2)";
+            root.style.setProperty('--accent-color', '#8b5cf6');
+        }
+    };
+    
+    // Texture Upload
+    window.uploadTex = (id) => { textureUploadId = id; document.getElementById("textureInput").click(); };
+    window.handleTextureUpload = (el) => {
+        const f = el.files[0];
+        if(f) {
+            const r = new FileReader();
+            r.onload = (e) => set(ref(db, "textures/" + textureUploadId), e.target.result);
+            r.readAsDataURL(f);
+        }
+        el.value = '';
+    };
+
+    // Filter Items in Modal
+    window.filterItems = (v) => renderItems();
   </script>
 </body>
 </html>
