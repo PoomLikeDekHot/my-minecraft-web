@@ -3,26 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Minecraft Manager (Ultimate Edition)</title>
+  <title>Minecraft Manager (Smooth Edition)</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&family=Press+Start+2P&display=swap"
-    rel="stylesheet"
-  />
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-  />
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { 
-            sans: ["Kanit", "sans-serif"],
-            pixel: ['"Press Start 2P"', 'cursive'] 
-          },
+          fontFamily: { sans: ["Kanit", "sans-serif"], pixel: ['"Press Start 2P"', 'cursive'] },
           colors: { bgDark: "#0f172a", cardDark: "#1e293b" }
         }
       }
@@ -32,394 +23,208 @@
   <style>
     :root {
       --accent-color: #8b5cf6;
-      --cursor-url: url('https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/diamond_sword.png');
     }
 
-    /* 1. Minecraft Cursor */
-    body {
+    /* OPTIMIZED BACKGROUND: แยก Layer เพื่อความลื่น */
+    #bg-layer {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: -1;
       background-color: #020617;
-      /* Default Overworld */
       background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.95)),
-        url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/dirt.png"); 
+        url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/dirt.png");
       background-size: cover, 64px;
-      background-attachment: fixed;
+      background-repeat: repeat;
+      will-change: transform; /* บอก Browser ให้เตรียม GPU */
+    }
+
+    body {
       color: white;
-      image-rendering: pixelated;
-      cursor: url('https://cdnjs.cloudflare.com/ajax/libs/cursor-effects/1.0.0/cursor/minecraft-sword.png'), auto; /* Fallback cursor */
+      image-rendering: pixelated; /* คงความคมชัดแบบ Pixel Art */
+      cursor: url('https://cdnjs.cloudflare.com/ajax/libs/cursor-effects/1.0.0/cursor/minecraft-sword.png'), auto;
     }
 
-    /* 2. Enchanted Glow Effect */
-    .enchanted {
-      position: relative;
-      overflow: hidden;
-    }
-    .enchanted::after {
-      content: "";
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(135deg, rgba(168, 85, 247, 0) 0%, rgba(168, 85, 247, 0.2) 50%, rgba(168, 85, 247, 0) 100%);
-      background-size: 200% 200%;
-      animation: enchantShimmer 2s linear infinite;
-      pointer-events: none;
-    }
-    @keyframes enchantShimmer {
-      0% { background-position: 200% 200%; }
-      100% { background-position: -200% -200%; }
-    }
-
+    /* ลดความหน่วงของ Glass Effect */
     .glass-panel {
       background: rgba(15, 23, 42, 0.96);
       border-radius: 12px;
       border: 1px solid rgba(148, 163, 184, 0.25);
-      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.85);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* ลดเงาที่ซับซ้อน */
+      /* backdrop-filter: blur(4px); เอาออกเพื่อความลื่นบนมือถือ */
     }
 
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #020617; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #475569; border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
 
     .pixel-art { image-rendering: pixelated; }
     .theme-bg { background-color: var(--accent-color); }
     .theme-text { color: var(--accent-color); }
 
-    .anim-card { animation: cardIn 260ms ease-out; will-change: transform, opacity; }
+    /* Animation ที่เบาเครื่องขึ้น */
+    .anim-card { animation: cardIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); will-change: transform, opacity; }
     @keyframes cardIn {
-      from { opacity: 0; transform: translateY(6px) scale(0.98); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .hover-pop {
-      transition: all 150ms ease;
-    }
-    .hover-pop:hover {
-      transform: translateY(-2px) scale(1.01);
-      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.9);
-      border-color: rgba(129, 140, 248, 0.9);
-    }
+    .hover-pop { transition: transform 0.1s ease, box-shadow 0.1s ease; will-change: transform; }
+    .hover-pop:hover { transform: translateY(-2px); }
 
-    .btn-soft { transition: all 130ms ease; }
-    .btn-soft:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(15, 23, 42, 0.8); }
-    .btn-soft:active { transform: translateY(0) scale(0.97); }
+    .btn-soft { transition: transform 0.05s ease, background-color 0.1s; }
+    .btn-soft:active { transform: scale(0.95); }
 
-    /* 3. Toast Notification Styles */
-    #toast-container {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .toast {
-      background: #1e293b;
-      border-left: 4px solid var(--accent-color);
-      color: white;
-      padding: 12px 20px;
-      border-radius: 4px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-      font-size: 0.9rem;
-      animation: slideIn 0.3s ease-out forwards, fadeOut 0.3s ease-in 2.7s forwards;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 250px;
-    }
+    /* Toast Notification */
+    #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .toast { pointer-events: auto; background: #1e293b; border-left: 4px solid var(--accent-color); color: white; padding: 10px 16px; border-radius: 4px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); font-size: 0.9rem; animation: slideIn 0.2s ease-out forwards; display: flex; align-items: center; gap: 10px; min-width: 200px; }
     @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; pointer-events: none; } }
 
-    /* 4. XP Bar Styles */
-    .xp-bar-container {
-      height: 14px;
-      background: #000;
-      border: 2px solid #373737;
-      border-radius: 2px;
-      position: relative;
-      margin-top: 4px;
-    }
-    .xp-fill {
-      height: 100%;
-      background: linear-gradient(to bottom, #80ff20 0%, #46aa06 100%);
-      width: 0%;
-      transition: width 0.5s ease;
-    }
-    .xp-text {
-      position: absolute;
-      top: -18px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-family: 'Press Start 2P', cursive;
-      color: #80ff20;
-      font-size: 10px;
-      text-shadow: 2px 2px 0 #000;
-    }
+    /* XP Bar */
+    .xp-bar-container { height: 10px; background: #000; border: 2px solid #373737; border-radius: 2px; position: relative; margin-top: 6px; }
+    .xp-fill { height: 100%; background: linear-gradient(to bottom, #80ff20 0%, #46aa06 100%); width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+    .xp-text { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-family: 'Press Start 2P', cursive; color: #80ff20; font-size: 8px; text-shadow: 1px 1px 0 #000; }
 
-    /* 5. Inventory Grid Mode */
-    .grid-view-mode {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
-      gap: 8px;
-    }
-    .grid-view-mode .item-card {
-      flex-direction: column;
-      padding: 8px;
-      text-align: center;
-      height: 100%;
-    }
-    .grid-view-mode .item-card img { width: 40px; height: 40px; margin-bottom: 4px; }
-    .grid-view-mode .item-details { display: none; } /* Hide details in grid mode for cleaner look */
-    .grid-view-mode .item-badge { position: absolute; top: 2px; right: 2px; }
+    /* Grid Mode */
+    .grid-view-mode { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; }
+    .grid-view-mode .item-card { flex-direction: column; padding: 8px; text-align: center; height: 100%; justify-content: center; }
+    .grid-view-mode .item-card img { width: 32px; height: 32px; margin-bottom: 4px; }
+    .grid-view-mode .item-details { display: none; }
+    .grid-view-mode .item-badge { position: absolute; top: 2px; right: 2px; font-size: 8px; }
 
+    .enchanted { position: relative; overflow: hidden; }
+    .enchanted::after { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, transparent 0%, rgba(168, 85, 247, 0.2) 50%, transparent 100%); background-size: 200% 200%; animation: shimmer 3s infinite linear; pointer-events: none; }
+    @keyframes shimmer { 0% { background-position: 200% 200%; } 100% { background-position: -200% -200%; } }
   </style>
 </head>
 
-<body class="min-h-screen p-4 md:p-8 font-sans transition-colors duration-500">
+<body class="min-h-screen font-sans selection:bg-purple-500/30">
+  <div id="bg-layer"></div>
   
   <div id="toast-container"></div>
 
-  <header class="max-w-7xl mx-auto mb-6 flex flex-col xl:flex-row justify-between items-center gap-4">
-    <div class="flex items-center gap-4">
-        <div>
-            <h1 class="text-4xl font-bold text-white drop-shadow-md flex items-center gap-2">
-                MC <span class="theme-text">Manager</span>
-                <span class="text-xs bg-emerald-500 text-black px-2 py-0.5 rounded font-bold shadow-[0_0_10px_rgba(16,185,129,0.5)]">PRO</span>
-            </h1>
-            <div class="w-48 relative mt-3">
-                <span class="xp-text" id="levelDisplay">LVL 0</span>
-                <div class="xp-bar-container">
-                    <div id="globalXpBar" class="xp-fill"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="flex flex-wrap items-center justify-end gap-3">
-      <select id="biomeSelect" onchange="changeBiome(this.value)" class="bg-slate-800 text-xs text-white p-2 rounded border border-slate-600 outline-none hover:border-[var(--accent-color)] cursor-pointer">
-        <option value="overworld">🌲 Overworld</option>
-        <option value="nether">🔥 Nether</option>
-        <option value="end">🌌 The End</option>
-      </select>
-
-      <button onclick="toggleSound()" id="soundBtn" class="bg-slate-800 p-2 rounded border border-slate-600 hover:text-[var(--accent-color)] btn-soft" title="Toggle SFX">
-        <i class="fa-solid fa-volume-high"></i>
-      </button>
-
-      <div class="hidden md:flex flex-col items-end text-xs text-slate-400 mr-2 border-r pr-4 border-slate-700">
-        <span id="randomTip" class="text-[10px] text-yellow-300 italic animate-pulse">"Don't dig straight down!"</span>
-        <div class="flex items-center gap-2 mt-1">
-          <span id="statusDot" class="w-2 h-2 rounded-full bg-red-500"></span>
-          <span id="statusText">Connecting...</span>
-        </div>
+  <div class="p-4 md:p-8">
+    <header class="max-w-7xl mx-auto mb-6 flex flex-col xl:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-4">
+          <div>
+              <h1 class="text-3xl md:text-4xl font-bold text-white drop-shadow-md flex items-center gap-2 tracking-tight">
+                  MC <span class="theme-text">Manager</span>
+                  <span class="text-[10px] bg-emerald-500 text-black px-1.5 py-0.5 rounded font-bold shadow-[0_0_10px_rgba(16,185,129,0.4)]">LITE</span>
+              </h1>
+              <div class="w-48 relative mt-3">
+                  <span class="xp-text" id="levelDisplay">LVL 0</span>
+                  <div class="xp-bar-container"><div id="globalXpBar" class="xp-fill"></div></div>
+              </div>
+          </div>
       </div>
 
-      <button onclick="backupData()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded btn-soft" title="Backup (JSON)">
-        <i class="fa-solid fa-download"></i>
-      </button>
-      <button onclick="document.getElementById('fileInput').click()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded btn-soft" title="Restore (JSON)">
-        <i class="fa-solid fa-upload"></i>
-      </button>
-      <input type="file" id="fileInput" class="hidden" onchange="restoreData(this)" />
-      
-      <button onclick="exportToCSV()" class="bg-green-800/50 hover:bg-green-800 text-green-300 px-3 py-2 rounded border border-green-700/50 btn-soft" title="Export CSV">
-        <i class="fa-solid fa-file-csv"></i>
-      </button>
+      <div class="flex flex-wrap items-center justify-end gap-2">
+        <select id="biomeSelect" onchange="changeBiome(this.value)" class="bg-slate-800 text-xs text-white p-2 rounded border border-slate-600 outline-none hover:border-[var(--accent-color)] cursor-pointer focus:ring-1 ring-purple-500">
+          <option value="overworld">🌲 Overworld</option>
+          <option value="nether">🔥 Nether</option>
+          <option value="end">🌌 The End</option>
+        </select>
+        <button onclick="toggleSound()" id="soundBtn" class="w-8 h-8 flex items-center justify-center bg-slate-800 rounded border border-slate-600 hover:text-[var(--accent-color)] btn-soft"><i class="fa-solid fa-volume-high"></i></button>
+        <button onclick="backupData()" class="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded btn-soft"><i class="fa-solid fa-download"></i></button>
+        <button onclick="document.getElementById('fileInput').click()" class="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded btn-soft"><i class="fa-solid fa-upload"></i></button>
+        <input type="file" id="fileInput" class="hidden" onchange="restoreData(this)" />
+        <button onclick="openModal('projectModal')" class="theme-bg text-white px-4 py-2 rounded shadow-lg font-bold hover:brightness-110 active:scale-95 transition-all btn-soft flex items-center gap-2 text-sm">
+          <i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">New Project</span>
+        </button>
+      </div>
+    </header>
 
-      <button onclick="openModal('projectModal')" class="theme-bg text-white px-5 py-2 rounded shadow-lg font-bold hover:brightness-110 active:scale-95 transition-all btn-soft flex items-center gap-2">
-        <i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">New Project</span> <span class="text-[10px] bg-white/20 px-1.5 rounded">N</span>
-      </button>
-    </div>
-  </header>
-
-  <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-    <div class="lg:col-span-3 space-y-6">
-      <div class="glass-panel p-6 anim-card">
-        <div class="relative mb-4">
-          <i class="fa-solid fa-search absolute left-3 top-3 text-slate-500"></i>
-          <input
-            type="text"
-            placeholder="Search projects / items..."
-            oninput="filterProjects(this.value, 'search')"
-            class="w-full bg-slate-900 border border-slate-600 rounded p-2 pl-9 text-white focus:border-[var(--accent-color)] outline-none transition-all focus:ring-1 ring-[var(--accent-color)]"
-          />
-        </div>
-
-        <div class="grid grid-cols-2 gap-3 mb-4">
-          <div class="bg-slate-900/50 p-3 rounded border border-slate-600 text-center group hover:border-[var(--accent-color)] transition-colors">
-            <span class="text-2xl font-bold text-white block group-hover:scale-110 transition-transform" id="totalProjects">-</span>
-            <span class="text-[10px] text-slate-400">PROJECTS</span>
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-3 space-y-4">
+        <div class="glass-panel p-4 anim-card">
+          <div class="relative mb-3">
+            <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-500 text-sm"></i>
+            <input type="text" placeholder="Search..." oninput="filterProjects(this.value, 'search')" class="w-full bg-slate-900 border border-slate-600 rounded py-2 pl-9 text-sm text-white focus:border-[var(--accent-color)] outline-none" />
           </div>
-          <div class="bg-slate-900/50 p-3 rounded border border-slate-600 text-center group hover:border-emerald-500 transition-colors">
-            <span class="text-2xl font-bold text-emerald-400 block group-hover:scale-110 transition-transform" id="completionRate">0%</span>
-            <span class="text-[10px] text-slate-400">GLOBAL COMPLETED</span>
+          <div class="grid grid-cols-2 gap-2 mb-3">
+            <div class="bg-slate-900/50 p-2 rounded border border-slate-600 text-center"><span class="text-xl font-bold text-white block" id="totalProjects">-</span><span class="text-[9px] text-slate-400">PROJECTS</span></div>
+            <div class="bg-slate-900/50 p-2 rounded border border-slate-600 text-center"><span class="text-xl font-bold text-emerald-400 block" id="completionRate">0%</span><span class="text-[9px] text-slate-400">DONE</span></div>
+          </div>
+          <div class="space-y-1 text-sm">
+            <button onclick="filterProjects('all', 'cat')" class="w-full text-left px-3 py-1.5 rounded hover:bg-slate-700 text-slate-300 flex items-center gap-2 btn-soft"><i class="fa-solid fa-layer-group"></i> All</button>
+            <button onclick="filterProjects('farm', 'cat')" class="w-full text-left px-3 py-1.5 rounded hover:bg-slate-700 text-slate-300 flex items-center gap-2 btn-soft"><i class="fa-solid fa-wheat-awn text-emerald-400"></i> Farm</button>
+            <button onclick="filterProjects('build', 'cat')" class="w-full text-left px-3 py-1.5 rounded hover:bg-slate-700 text-slate-300 flex items-center gap-2 btn-soft"><i class="fa-solid fa-hammer text-blue-400"></i> Build</button>
+            <button onclick="filterProjects('redstone', 'cat')" class="w-full text-left px-3 py-1.5 rounded hover:bg-slate-700 text-slate-300 flex items-center gap-2 btn-soft"><i class="fa-solid fa-microchip text-red-400"></i> Redstone</button>
+          </div>
+          <div class="mt-3 pt-3 border-t border-slate-700 flex justify-between items-center text-xs text-slate-400">
+             <span>View:</span> <button onclick="toggleCompactMode()" id="compactBtn" class="text-slate-500 hover:text-white"><i class="fa-solid fa-toggle-off text-xl"></i></button>
           </div>
         </div>
-
-        <div class="space-y-1">
-          <button onclick="filterProjects('all', 'cat')" class="w-full text-left px-3 py-2 rounded hover:bg-slate-700 text-sm text-slate-300 flex items-center gap-2 btn-soft transition-colors focus:bg-slate-700">
-            <i class="fa-solid fa-layer-group"></i> All
-          </button>
-          <button onclick="filterProjects('farm', 'cat')" class="w-full text-left px-3 py-2 rounded hover:bg-slate-700 text-sm text-slate-300 flex items-center gap-2 btn-soft">
-            <i class="fa-solid fa-wheat-awn text-emerald-400"></i> Farm
-          </button>
-          <button onclick="filterProjects('build', 'cat')" class="w-full text-left px-3 py-2 rounded hover:bg-slate-700 text-sm text-slate-300 flex items-center gap-2 btn-soft">
-            <i class="fa-solid fa-hammer text-blue-400"></i> Build
-          </button>
-          <button onclick="filterProjects('redstone', 'cat')" class="w-full text-left px-3 py-2 rounded hover:bg-slate-700 text-sm text-slate-300 flex items-center gap-2 btn-soft">
-            <i class="fa-solid fa-microchip text-red-400"></i> Redstone
-          </button>
-        </div>
-
-        <div class="mt-4 pt-4 border-t border-slate-700 flex justify-between items-center text-sm text-slate-400">
-          <span>Compact View</span>
-          <button onclick="toggleCompactMode()" id="compactBtn" class="text-slate-500 hover:text-white btn-soft">
-            <i class="fa-solid fa-toggle-off text-2xl"></i>
-          </button>
-        </div>
+        <button onclick="openTrash()" class="w-full py-2.5 rounded border border-red-900/30 text-red-400 hover:bg-red-900/20 text-xs flex items-center justify-center gap-2 btn-soft glass-panel"><i class="fa-solid fa-trash-arrow-up"></i> Recycle Bin</button>
       </div>
 
-      <div class="glass-panel p-4 hidden lg:block anim-card">
-        <h4 class="text-xs font-bold text-slate-400 mb-2 uppercase"><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</h4>
-        <div id="activityLog" class="text-[10px] text-slate-500 space-y-2 max-h-32 overflow-y-auto font-mono">
-           <p class="italic opacity-50">No recent actions...</p>
-        </div>
+      <div class="lg:col-span-9">
+        <div id="projectList" class="grid gap-3 pb-20 grid-cols-1 md:grid-cols-2 xl:grid-cols-3"></div>
       </div>
-
-      <button onclick="openTrash()" class="w-full py-3 rounded border border-red-900/30 text-red-400 hover:bg-red-900/20 transition-all text-sm flex items-center justify-center gap-2 btn-soft glass-panel">
-        <i class="fa-solid fa-trash-arrow-up"></i> Recycle Bin
-      </button>
-    </div>
-
-    <div class="lg:col-span-9">
-      <div id="projectList" class="grid gap-4 pb-20 grid-cols-1 md:grid-cols-2 xl:grid-cols-3"></div>
     </div>
   </div>
 
-  <div id="detailModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-50 backdrop-blur-sm">
-    <div class="glass-panel bg-slate-900 rounded-lg w-full max-w-4xl mx-4 overflow-hidden flex flex-col h-[90vh] shadow-2xl border border-slate-700 modal-panel transform scale-95 opacity-0 transition-all duration-150 relative">
-      
-      <div class="p-5 border-b border-slate-700 bg-slate-900/80 flex justify-between items-center z-10">
-        <div class="flex items-center gap-4">
-          <div id="projectIconHeader" class="w-12 h-12 rounded bg-slate-800 flex items-center justify-center border border-slate-600 text-2xl shadow-inner"></div>
+  <div id="detailModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-200" style="backdrop-filter: blur(2px);">
+    <div class="glass-panel bg-slate-900 rounded-xl w-full max-w-4xl mx-4 overflow-hidden flex flex-col h-[85vh] shadow-2xl border border-slate-700 modal-panel transform scale-95 opacity-0 transition-all duration-200">
+      <div class="p-4 border-b border-slate-700 bg-slate-900 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+          <div id="projectIconHeader" class="w-10 h-10 rounded bg-slate-800 flex items-center justify-center border border-slate-600 text-xl text-slate-300"></div>
           <div>
-            <h3 class="text-2xl font-bold text-white flex items-center gap-2" id="detailTitle">...</h3>
-            <div class="flex gap-2 mt-1 items-center flex-wrap">
-              <span class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300 border border-slate-600" id="detailCat">Build</span>
-              <button onclick="toggleNote()" class="text-xs text-yellow-400 hover:text-yellow-300 btn-soft"><i class="fa-solid fa-sticky-note"></i> Notes</button>
-              <button onclick="toggleLayers()" class="text-xs text-sky-400 hover:text-sky-300 btn-soft"><i class="fa-solid fa-layer-group"></i> Layers</button>
+            <h3 class="text-xl font-bold text-white truncate max-w-[150px] sm:max-w-xs" id="detailTitle">...</h3>
+            <div class="flex gap-2 text-[10px] text-slate-400 items-center">
+              <span class="bg-slate-800 px-1.5 py-0.5 rounded border border-slate-600" id="detailCat">-</span>
+              <button onclick="toggleNote()" class="hover:text-yellow-300"><i class="fa-solid fa-sticky-note"></i> Note</button>
+              <button onclick="toggleLayers()" class="hover:text-sky-300"><i class="fa-solid fa-layer-group"></i> Layer</button>
             </div>
-            <div id="detailSummary" class="mt-1 text-[11px] text-slate-400"></div>
           </div>
         </div>
-        <div class="flex gap-2">
-           <button onclick="toggleGridView()" id="gridViewBtn" class="w-8 h-8 rounded bg-slate-800 border border-slate-600 hover:bg-slate-700 text-slate-300 flex items-center justify-center btn-soft" title="Toggle Grid View">
-             <i class="fa-solid fa-border-all"></i>
-           </button>
-          <button onclick="copyProjectList()" class="bg-slate-800 text-slate-100 px-3 py-1.5 rounded text-xs border border-slate-600 hover:bg-slate-700 btn-soft">
-            <i class="fa-solid fa-copy"></i> List
-          </button>
-          <button onclick="completeAllItems()" class="bg-emerald-900/50 text-emerald-400 px-3 py-1.5 rounded text-sm hover:bg-emerald-900 border border-emerald-700/50 btn-soft" title="Complete All">
-            <i class="fa-solid fa-check-double"></i> All
-          </button>
-          <button onclick="closeModal('detailModal')" class="w-8 h-8 rounded hover:bg-red-900/50 hover:text-red-400 text-slate-300 flex items-center justify-center btn-soft" title="Close (Esc)">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
+        <div class="flex gap-1">
+           <button onclick="toggleGridView()" class="w-8 h-8 rounded hover:bg-slate-800 text-slate-400"><i class="fa-solid fa-border-all"></i></button>
+           <button onclick="copyProjectList()" class="w-8 h-8 rounded hover:bg-slate-800 text-slate-400"><i class="fa-solid fa-copy"></i></button>
+           <button onclick="closeModal('detailModal')" class="w-8 h-8 rounded hover:bg-red-900/50 hover:text-red-400 text-slate-400"><i class="fa-solid fa-xmark"></i></button>
         </div>
       </div>
 
-      <div id="projectNoteArea" class="hidden bg-yellow-900/20 p-3 border-b border-yellow-700/30">
-        <label class="text-xs text-yellow-500 font-bold">📝 Coordinates / Notes:</label>
-        <textarea id="projectNoteInput" class="w-full bg-slate-950/50 text-white text-sm p-2 rounded border border-yellow-700/30 mt-1 h-20 font-mono" placeholder="X: 100, Y: 64, Z: -200..." onchange="saveNote()"></textarea>
+      <div id="projectNoteArea" class="hidden bg-yellow-900/10 p-2 border-b border-yellow-700/30"><textarea id="projectNoteInput" class="w-full bg-transparent text-white text-xs p-2 h-16 font-mono outline-none resize-none" placeholder="Notes..." onchange="saveNote()"></textarea></div>
+      <div id="projectLayerArea" class="hidden bg-sky-900/10 p-2 border-b border-sky-700/30"><textarea id="projectLayerInput" class="w-full bg-transparent text-white text-xs p-2 h-16 font-mono outline-none resize-none" placeholder="Layers..." onchange="saveLayers()"></textarea></div>
+
+      <div class="px-4 py-2 bg-[#0b1120] border-b border-slate-800 flex justify-between items-center text-xs text-slate-400">
+        <select id="itemSortSelect" onchange="changeItemSort(this.value)" class="bg-transparent border-none outline-none cursor-pointer hover:text-white"><option value="priority">Sort: Priority</option><option value="name">Name</option><option value="amount">Amount</option><option value="progress">Progress</option></select>
+        <span onclick="toggleStackDisplay()" class="cursor-pointer hover:text-white select-none"><i class="fa-solid fa-cubes-stacked"></i> Toggle Stacks</span>
       </div>
 
-      <div id="projectLayerArea" class="hidden bg-sky-900/20 p-3 border-b border-sky-700/30">
-        <label class="text-xs text-sky-400 font-bold">📚 Layer Planner</label>
-        <textarea id="projectLayerInput" class="w-full bg-slate-950/50 text-white text-sm p-2 rounded border border-sky-700/30 mt-1 h-20 font-mono" placeholder="Y=64: Base, Y=65: Walls..." onchange="saveLayers()"></textarea>
-      </div>
+      <div class="flex-1 overflow-y-auto p-4 bg-[#0b1120] space-y-2" id="itemsContainer"></div>
 
-      <div class="px-4 pt-3 bg-[#0b1120] border-b border-slate-800 flex justify-between items-center text-xs text-slate-400">
-        <div class="flex items-center gap-2">
-          <span>Sort:</span>
-          <select id="itemSortSelect" onchange="changeItemSort(this.value)" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 cursor-pointer">
-            <option value="priority">Priority</option>
-            <option value="name">Name</option>
-            <option value="amount">Amount</option>
-            <option value="progress">Progress</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
-        <div class="text-[10px] text-slate-500 italic">
-          <i class="fa-solid fa-circle-info"></i> Click amount to toggle Stacks (64)
-        </div>
-      </div>
-
-      <div class="flex-1 overflow-y-auto p-4 bg-[#0b1120]" id="itemsContainer"></div>
-
-      <div class="p-4 bg-slate-900/90 border-t border-slate-700 relative z-10">
-        <form onsubmit="event.preventDefault(); handleAddItem();" class="flex gap-2 items-center">
-          <div class="relative flex-1 group">
-            <input type="hidden" id="newItemId" />
-            <input type="text" id="newItemName" placeholder="Add material... (e.g. Oak Log)" class="w-full bg-slate-950 border border-slate-600 rounded p-3 text-white focus:border-[var(--accent-color)] outline-none" oninput="searchItems(this.value)" />
-            <div id="suggestionBox" class="hidden absolute bottom-full left-0 right-0 mb-2 bg-slate-800 border border-slate-600 rounded shadow-xl max-h-48 overflow-y-auto z-20"></div>
-          </div>
-          <select id="newItemPriority" class="bg-slate-950 border border-slate-600 rounded p-3 text-white outline-none w-24 cursor-pointer">
-            <option value="normal">Normal</option>
-            <option value="high">High 🔥</option>
-            <option value="low">Low 💤</option>
-          </select>
-          <input type="number" id="newItemAmount" placeholder="#" class="w-20 bg-slate-950 border border-slate-600 rounded p-3 text-center text-white outline-none" />
-          <button type="submit" class="theme-bg px-5 py-3 rounded text-white font-bold shadow-lg hover:brightness-110 btn-soft" title="Add (Enter)">
-            <i class="fa-solid fa-plus"></i>
-          </button>
+      <div class="p-3 bg-slate-900 border-t border-slate-700">
+        <form onsubmit="event.preventDefault(); handleAddItem();" class="flex gap-2">
+          <div class="relative flex-1"><input type="hidden" id="newItemId" /><input type="text" id="newItemName" placeholder="Item Name..." class="w-full bg-slate-950 border border-slate-600 rounded px-3 py-2 text-sm text-white focus:border-[var(--accent-color)] outline-none" oninput="searchItems(this.value)" /><div id="suggestionBox" class="hidden absolute bottom-full left-0 right-0 mb-1 bg-slate-800 border border-slate-600 rounded shadow-lg max-h-32 overflow-y-auto z-20"></div></div>
+          <select id="newItemPriority" class="bg-slate-950 border border-slate-600 rounded px-2 text-white text-xs outline-none"><option value="normal">Norm</option><option value="high">High</option><option value="low">Low</option></select>
+          <input type="number" id="newItemAmount" placeholder="#" class="w-16 bg-slate-950 border border-slate-600 rounded text-center text-white text-sm outline-none" />
+          <button type="submit" class="theme-bg px-3 rounded text-white hover:brightness-110"><i class="fa-solid fa-plus"></i></button>
         </form>
       </div>
     </div>
   </div>
 
-  <div id="projectModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-50 backdrop-blur-sm">
-    <div class="glass-panel bg-slate-900 p-6 rounded-lg w-full max-w-md mx-4 shadow-2xl border border-slate-600 modal-panel transform scale-95 opacity-0 transition-all duration-150">
-      <h3 class="text-xl font-bold mb-4 text-white">Create / Import Project</h3>
-      <input type="text" id="newProjectName" placeholder="Project Name" class="w-full bg-slate-950 border border-slate-600 rounded p-3 text-white mb-4 outline-none focus:border-[var(--accent-color)]" />
+  <div id="projectModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div class="glass-panel bg-slate-900 p-6 rounded-lg w-full max-w-sm mx-4 modal-panel opacity-0 transform scale-95 transition-all">
+      <h3 class="text-lg font-bold mb-4 text-white">New Project</h3>
+      <input type="text" id="newProjectName" placeholder="Project Name" class="w-full bg-slate-950 border border-slate-600 rounded p-2 text-white mb-4 outline-none focus:border-[var(--accent-color)]" />
       <div class="grid grid-cols-3 gap-2 mb-4">
-        <button onclick="selectCategory('farm')" class="cat-btn p-3 rounded border border-slate-700 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700 flex flex-col items-center gap-1 btn-soft" id="cat-btn-farm">
-          <i class="fa-solid fa-wheat-awn text-xl"></i><span class="text-xs">Farm</span>
-        </button>
-        <button onclick="selectCategory('build')" class="cat-btn p-3 rounded border border-slate-700 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700 flex flex-col items-center gap-1 btn-soft" id="cat-btn-build">
-          <i class="fa-solid fa-hammer text-xl"></i><span class="text-xs">Build</span>
-        </button>
-        <button onclick="selectCategory('redstone')" class="cat-btn p-3 rounded border border-slate-700 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700 flex flex-col items-center gap-1 btn-soft" id="cat-btn-redstone">
-          <i class="fa-solid fa-microchip text-xl"></i><span class="text-xs">Redstone</span>
-        </button>
+        <button onclick="selectCategory('farm')" class="cat-btn p-2 rounded border border-slate-700 bg-slate-800 text-slate-400 hover:text-white text-xs" id="cat-btn-farm">Farm</button>
+        <button onclick="selectCategory('build')" class="cat-btn p-2 rounded border border-slate-700 bg-slate-800 text-slate-400 hover:text-white text-xs" id="cat-btn-build">Build</button>
+        <button onclick="selectCategory('redstone')" class="cat-btn p-2 rounded border border-slate-700 bg-slate-800 text-slate-400 hover:text-white text-xs" id="cat-btn-redstone">Redstone</button>
       </div>
       <input type="hidden" id="selectedCat" value="build" />
-
-      <div class="mt-2 mb-4 text-xs text-slate-400 border border-slate-700 rounded p-3 space-y-2">
-        <p class="font-semibold text-slate-200 text-xs flex items-center gap-2">
-          <i class="fa-solid fa-code-branch"></i> Import from CODE
-        </p>
-        <div class="flex gap-2">
-          <input id="importCodeInput" class="flex-1 bg-slate-950 border border-slate-600 rounded p-2 text-white text-xs" placeholder="Paste Project ID here" />
-          <button onclick="importProjectFromCode()" class="text-xs px-3 py-2 bg-slate-700 rounded text-white hover:bg-slate-600 border border-slate-500 btn-soft">
-            Import
-          </button>
-        </div>
-      </div>
-
-      <div class="flex justify-end gap-2">
-        <button onclick="closeModal('projectModal')" class="px-4 py-2 text-slate-400 hover:text-white btn-soft">Cancel</button>
-        <button onclick="handleAddProject()" class="theme-bg px-6 py-2 rounded text-white font-bold btn-soft">Create</button>
-      </div>
+      <div class="flex justify-end gap-2"><button onclick="closeModal('projectModal')" class="px-3 py-1.5 text-xs text-slate-400 hover:text-white">Cancel</button><button onclick="handleAddProject()" class="theme-bg px-4 py-1.5 rounded text-white text-xs font-bold">Create</button></div>
     </div>
   </div>
 
-  <div id="trashModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[60] backdrop-blur-sm">
-    <div class="glass-panel bg-slate-900 rounded-lg w-full max-w-md mx-4 p-6 border border-red-900/50 modal-panel transform scale-95 opacity-0 transition-all duration-150">
-      <h3 class="text-xl font-bold text-red-400 mb-4 flex items-center gap-2">
-        <i class="fa-solid fa-trash"></i> Recycle Bin
-      </h3>
-      <div id="trashList" class="space-y-2 max-h-60 overflow-y-auto mb-4"></div>
-      <div class="flex justify-end">
-        <button onclick="closeModal('trashModal')" class="text-slate-400 hover:text-white btn-soft">Close</button>
-      </div>
+  <div id="trashModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[60]">
+    <div class="glass-panel bg-slate-900 rounded-lg w-full max-w-sm mx-4 p-4 modal-panel opacity-0 transform scale-95 transition-all">
+      <h3 class="font-bold text-red-400 mb-2">Recycle Bin</h3>
+      <div id="trashList" class="space-y-1 max-h-48 overflow-y-auto mb-2 text-sm"></div>
+      <div class="flex justify-end"><button onclick="closeModal('trashModal')" class="text-slate-400 text-xs">Close</button></div>
     </div>
   </div>
 
@@ -439,637 +244,234 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // STATE
-    let projects = [];
-    let trash = JSON.parse(localStorage.getItem("mcTrash") || "[]");
-    let currentProjectId = null;
-    let isCompact = localStorage.getItem("mcCompact") === "true";
-    let isGridView = localStorage.getItem("mcGridView") === "true"; // 12. Grid View State
-    let soundEnabled = localStorage.getItem("mcSound") === "true"; // 8. Sound State
-    let currentCatFilter = "all";
-    let currentSearch = "";
-    let itemSort = "priority";
-    let GLOBAL_ITEMS = [];
-    let customTextures = JSON.parse(localStorage.getItem("mcCustomTextures") || "{}");
-    let serverTextures = {};
-    let currentTextureItemId = null;
-    let showStacks = false; // 13. Stack Toggle State
+    // Optimized State Management
+    let state = {
+      projects: [],
+      trash: JSON.parse(localStorage.getItem("mcTrash") || "[]"),
+      currentId: null,
+      isCompact: localStorage.getItem("mcCompact") === "true",
+      isGrid: localStorage.getItem("mcGridView") === "true",
+      sound: localStorage.getItem("mcSound") === "true",
+      filterCat: "all",
+      search: "",
+      sort: "priority",
+      showStacks: false
+    };
 
-    // 14. Audio System (Synthesized - No External Files)
+    let globalItems = [];
+    let textures = { server: {}, custom: JSON.parse(localStorage.getItem("mcCustomTextures") || "{}") };
+    let textureUploadId = null;
+
+    // AUDIO (Optimized: Re-use context)
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playSound(type) {
-      if (!soundEnabled) return;
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      
+    const playSound = (type) => {
+      if (!state.sound || audioCtx.state === 'suspended') audioCtx.resume();
+      if (!state.sound) return;
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-
+      osc.connect(gain); gain.connect(audioCtx.destination);
       const now = audioCtx.currentTime;
       if (type === 'click') {
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(400, now);
-        osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
-        gain.gain.setValueAtTime(0.05, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-        osc.start(now);
-        osc.stop(now + 0.1);
+        osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+        gain.gain.setValueAtTime(0.05, now); gain.gain.linearRampToValueAtTime(0, now + 0.1);
+        osc.start(now); osc.stop(now + 0.1);
       } else if (type === 'success') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(500, now);
-        osc.frequency.setValueAtTime(1000, now + 0.1);
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.linearRampToValueAtTime(0, now + 0.3);
-        osc.start(now);
-        osc.stop(now + 0.3);
-      } else if (type === 'delete') {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(150, now);
-        osc.frequency.linearRampToValueAtTime(50, now + 0.2);
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.linearRampToValueAtTime(0, now + 0.2);
-        osc.start(now);
-        osc.stop(now + 0.2);
+        osc.frequency.setValueAtTime(400, now); osc.frequency.setValueAtTime(800, now + 0.1);
+        gain.gain.setValueAtTime(0.05, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
+        osc.start(now); osc.stop(now + 0.3);
       }
-    }
+    };
 
-    // 15. Toast Function
-    window.showToast = (msg, type = 'info') => {
-      const c = document.getElementById('toast-container');
+    // UTILS
+    window.showToast = (msg) => {
       const t = document.createElement('div');
-      t.className = 'toast';
-      t.style.borderLeftColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#8b5cf6';
-      t.innerHTML = `
-        <i class="fa-solid ${type === 'success' ? 'fa-check' : type === 'error' ? 'fa-triangle-exclamation' : 'fa-info-circle'}"></i>
-        <span>${msg}</span>
-      `;
-      c.appendChild(t);
-      setTimeout(() => t.remove(), 3000);
+      t.className = 'toast'; t.innerHTML = `<i class="fa-solid fa-info-circle"></i><span>${msg}</span>`;
+      document.getElementById('toast-container').appendChild(t);
+      setTimeout(() => t.remove(), 2500);
     };
 
-    // 11. Activity Log
-    function addLog(msg) {
-        const log = document.getElementById('activityLog');
-        const time = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit'});
-        log.innerHTML = `<p class="border-l-2 border-[var(--accent-color)] pl-2 mb-1"><span class="text-slate-400">[${time}]</span> <span class="text-slate-300">${msg}</span></p>` + log.innerHTML;
-        if(log.children.length > 20) log.lastElementChild.remove();
-    }
-
-    const TEXTURE_BASES = [
-      "https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/",
-      "https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/",
-      "https://assets.mcasset.cloud/1.20.4/assets/minecraft/textures/item/",
-      "https://assets.mcasset.cloud/1.20.4/assets/minecraft/textures/block/"
-    ];
-
-    async function fetchItems() {
-      try {
-        const res = await fetch("https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/pc/1.20/items.json");
-        const data = await res.json();
-        GLOBAL_ITEMS = data.map((i) => ({ id: i.name, name: i.displayName }));
-      } catch (e) {
-        GLOBAL_ITEMS = [{ id: "stone", name: "Stone" }];
-      }
-    }
-    fetchItems();
-
-    window.fallbackTexture = (img) => {
-      const id = img.getAttribute("data-id");
-      if (id && serverTextures[id]) { img.onerror = null; img.src = serverTextures[id]; return; }
-      if (id && customTextures[id]) { img.onerror = null; img.src = customTextures[id]; return; }
-      if (!id) { img.onerror = null; img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="; return; }
-      let step = parseInt(img.getAttribute("data-step") || "0", 10);
-      if (step < TEXTURE_BASES.length) {
-        img.setAttribute("data-step", String(step + 1));
-        img.onerror = () => fallbackTexture(img);
-        img.src = TEXTURE_BASES[step] + id + ".png";
-      } else {
-        img.onerror = null;
-        img.src = "https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/barrier.png";
-      }
+    // Debounce Function (หัวใจสำคัญของความลื่น)
+    const debounce = (func, wait) => {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => { clearTimeout(timeout); func(...args); };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
     };
 
-    // Calculate Global XP
-    function updateXP() {
-        let total = 0, completed = 0;
-        projects.forEach(p => {
-            if(p.items) Object.values(p.items).forEach(i => {
-                total++;
-                if(i.completed) completed++;
-            });
-        });
-        const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
-        document.getElementById('globalXpBar').style.width = pct + '%';
-        const lvl = Math.floor(completed / 5); // 1 Level per 5 items
-        document.getElementById('levelDisplay').innerText = `LVL ${lvl}`;
-        if(pct === 100 && total > 0) document.getElementById('levelDisplay').style.color = '#ffd700'; // Gold at 100%
-    }
+    // INIT DATA
+    fetch("https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/pc/1.20/items.json")
+      .then(r=>r.json()).then(d => globalItems = d.map(i => ({ id: i.name, name: i.displayName }))).catch(()=> globalItems=[{id:'stone',name:'Stone'}]);
 
-    onValue(ref(db, "projects"), (snapshot) => {
+    // FIREBASE LISTENER (Optimized with Debounce)
+    const handleDataUpdate = debounce((snapshot) => {
       const data = snapshot.val();
-      projects = [];
-      if (data) Object.keys(data).forEach((key) => projects.push({ id: key, ...data[key] }));
-      projects.reverse();
+      state.projects = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })).reverse() : [];
       renderProjects();
       updateDashboard();
-      updateXP(); // Update XP
-      if (currentProjectId) renderItems();
-      document.getElementById("statusText").innerText = "Online";
-      document.getElementById("statusText").className = "text-xs text-emerald-400";
-      document.getElementById("statusDot").className = "w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]";
-    });
+      if (state.currentId) renderItems(); // Only render items if modal is open
+    }, 100); // รอ 100ms ก่อนวาดหน้าจอ
 
-    onValue(ref(db, "textures"), (snap) => {
-      serverTextures = snap.val() || {};
-      if (currentProjectId) renderItems();
-    });
+    onValue(ref(db, "projects"), handleDataUpdate);
+    onValue(ref(db, "textures"), (s) => { textures.server = s.val() || {}; if(state.currentId) renderItems(); });
 
-    // 7. Biome Switcher Logic
-    window.changeBiome = (val) => {
-        const body = document.body;
-        if(val === 'nether') {
-            body.style.backgroundImage = 'linear-gradient(rgba(40, 5, 5, 0.9), rgba(40, 5, 5, 0.95)), url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/netherrack.png")';
-            document.documentElement.style.setProperty('--accent-color', '#ef4444');
-        } else if (val === 'end') {
-             body.style.backgroundImage = 'linear-gradient(rgba(10, 5, 20, 0.9), rgba(10, 5, 20, 0.95)), url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/end_stone.png")';
-             document.documentElement.style.setProperty('--accent-color', '#d946ef');
-        } else {
-             body.style.backgroundImage = 'linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.95)), url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/dirt.png")';
-             document.documentElement.style.setProperty('--accent-color', '#8b5cf6');
-        }
-        playSound('click');
-    }
-
-    // 8. Sound Toggle
-    window.toggleSound = () => {
-        soundEnabled = !soundEnabled;
-        localStorage.setItem("mcSound", soundEnabled);
-        document.getElementById("soundBtn").innerHTML = soundEnabled ? '<i class="fa-solid fa-volume-high"></i>' : '<i class="fa-solid fa-volume-xmark text-slate-500"></i>';
-        showToast(`Sound ${soundEnabled ? 'Enabled' : 'Disabled'}`);
-    }
-
-    // 16. Keyboard Shortcuts
-    document.addEventListener('keydown', (e) => {
-        if(e.key === 'Escape') closeModal('detailModal') || closeModal('projectModal');
-        if((e.metaKey || e.ctrlKey) && e.key === 'b') { e.preventDefault(); backupData(); }
-        // Only if modal is open
-        if(!document.getElementById('detailModal').classList.contains('hidden')) {
-             if(e.key === 'n' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                 e.preventDefault();
-                 document.getElementById('newItemName').focus();
-             }
-        }
-    });
-
-    function getProjectStats(p) {
-      const items = p.items ? Object.values(p.items) : [];
-      let totalBlocks = 0, haveBlocks = 0;
-      items.forEach((it) => {
-        const amt = parseInt(it.amount) || 0;
-        const cur = parseInt(it.current) || 0;
-        totalBlocks += amt;
-        haveBlocks += Math.min(cur, amt);
-      });
-      return { totalItems: items.length, totalBlocks, haveBlocks, missingBlocks: Math.max(totalBlocks - haveBlocks, 0) };
-    }
-
-    function updateDetailSummary() {
-      const p = projects.find((x) => x.id === currentProjectId);
-      const el = document.getElementById("detailSummary");
-      if (!p || !el) return;
-      const stats = getProjectStats(p);
-      el.textContent = `Items: ${stats.totalItems} | Blocks: ${stats.haveBlocks}/${stats.totalBlocks} (Missing: ${stats.missingBlocks})`;
-    }
-
-    window.toggleCompactMode = () => {
-      isCompact = !isCompact;
-      localStorage.setItem("mcCompact", isCompact);
-      document.getElementById("compactBtn").innerHTML = isCompact
-        ? '<i class="fa-solid fa-toggle-on text-emerald-400 text-2xl"></i>'
-        : '<i class="fa-solid fa-toggle-off text-2xl"></i>';
-      renderProjects();
-      playSound('click');
-    };
-
-    window.toggleGridView = () => {
-        isGridView = !isGridView;
-        localStorage.setItem("mcGridView", isGridView);
-        renderItems();
-        playSound('click');
-    }
-
-    window.openTrash = () => {
-      const l = document.getElementById("trashList");
-      l.innerHTML = trash.length ? trash.map((p, i) => `
-        <div class="flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700">
-          <span class="text-slate-300 text-sm">${p.name}</span>
-          <button onclick="restoreProject(${i})" class="text-green-400 hover:rotate-180 transition-transform duration-500"><i class="fa-solid fa-rotate-left"></i></button>
-        </div>`).join("") : '<p class="text-slate-500 text-center">Empty</p>';
-      openModal("trashModal");
-    };
-
-    window.restoreProject = (i) => {
-      push(ref(db, "projects"), trash[i]);
-      trash.splice(i, 1);
-      localStorage.setItem("mcTrash", JSON.stringify(trash));
-      openTrash();
-      playSound('success');
-      showToast('Project Restored!', 'success');
-    };
-
-    window.filterProjects = (v, t) => {
-      if (t === "search") currentSearch = v.toLowerCase();
-      else { currentCatFilter = v; playSound('click'); }
-      renderProjects();
-    };
-
-    function updateDashboard() {
-      const total = projects.length;
-      const completed = projects.reduce((a, p) => a + (p.items ? Object.values(p.items).filter((i) => i.completed).length : 0), 0);
-      const allItems = projects.reduce((a, p) => a + (p.items ? Object.keys(p.items).length : 0), 0);
-      document.getElementById("totalProjects").innerText = total;
-      document.getElementById("completionRate").innerText = allItems ? Math.round((completed / allItems) * 100) + "%" : "0%";
-      // Random Tip
-      const tips = ["Don't dig straight down!", "Creepers hate cats.", "Gold is faster but breaks easily.", "Water bucket saves lives.", "F3 to see coords."];
-      document.getElementById("randomTip").innerText = '"' + tips[Math.floor(Math.random()*tips.length)] + '"';
-    }
-
-    function hasItemMatch(p, q) {
-      if (!p.items) return false;
-      return Object.values(p.items).some((it) => (it.name || "").toLowerCase().includes(q));
-    }
-
+    // RENDERING LOGIC (String Concat vs DOM Thrashing)
     function renderProjects() {
       const container = document.getElementById("projectList");
-      container.innerHTML = "";
-      const filtered = projects.filter((p) =>
-          (currentCatFilter === "all" || p.category === currentCatFilter) &&
-          (!currentSearch || p.name.toLowerCase().includes(currentSearch) || hasItemMatch(p, currentSearch))
+      const filtered = state.projects.filter(p => 
+        (state.filterCat === "all" || p.category === state.filterCat) &&
+        (!state.search || p.name.toLowerCase().includes(state.search))
       );
+      
+      if (state.isCompact) container.classList.add("grid-cols-1"); else container.classList.remove("grid-cols-1");
 
-      if (isCompact) container.classList.add("grid-cols-1"); else container.classList.remove("grid-cols-1");
-
-      filtered.forEach((p) => {
+      // สร้าง HTML string ก้อนเดียวก่อน แล้วค่อยยัดใส่ innerHTML
+      const html = filtered.map(p => {
         const items = p.items ? Object.values(p.items) : [];
-        const done = items.filter((i) => i.completed).length;
+        const done = items.filter(i => i.completed).length;
         const prog = items.length ? Math.round((done / items.length) * 100) : 0;
         const icon = { farm: "fa-wheat-awn text-emerald-400", build: "fa-hammer text-blue-400", redstone: "fa-microchip text-red-400" }[p.category || "build"];
-
-        if (isCompact) {
-          container.innerHTML += `
-          <div onclick="openProjectDetails('${p.id}')" class="glass-panel anim-card hover-pop p-3 flex justify-between items-center hover:bg-slate-800 cursor-pointer border-l-4 border-l-[var(--accent-color)]">
-            <div class="flex items-center gap-3">
-              <i class="fa-solid ${icon}"></i>
-              <span class="text-white font-medium">${p.name}</span>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="w-24 bg-slate-900 rounded-full h-1.5">
-                <div class="theme-bg h-full rounded-full transition-all duration-500" style="width:${prog}%"></div>
-              </div>
-              <span class="text-xs text-slate-400">${done}/${items.length}</span>
-            </div>
+        
+        if (state.isCompact) {
+          return `<div onclick="openProject('${p.id}')" class="glass-panel anim-card hover-pop p-3 flex justify-between items-center hover:bg-slate-800 cursor-pointer border-l-4 border-l-[var(--accent-color)]">
+            <div class="flex items-center gap-3"><i class="fa-solid ${icon}"></i><span class="font-medium text-sm">${p.name}</span></div>
+            <div class="flex items-center gap-3"><div class="w-20 bg-slate-900 rounded-full h-1.5"><div class="theme-bg h-full rounded-full transition-all" style="width:${prog}%"></div></div><span class="text-[10px] text-slate-400">${done}/${items.length}</span></div>
           </div>`;
         } else {
-          container.innerHTML += `
-          <div onclick="openProjectDetails('${p.id}')" class="glass-panel anim-card hover-pop p-5 rounded-lg cursor-pointer hover:bg-slate-800 hover:border-[var(--accent-color)] transition-all relative">
-            <div class="flex justify-between items-start mb-4">
+          return `<div onclick="openProject('${p.id}')" class="glass-panel anim-card hover-pop p-4 rounded-lg cursor-pointer hover:bg-slate-800 hover:border-[var(--accent-color)] relative group">
+            <div class="flex justify-between items-start mb-3">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center relative bg-slate-900">
-                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1e293b" stroke-width="4" />
-                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--accent-color)" stroke-width="4" stroke-dasharray="${prog}, 100" class="transition-all duration-700" />
-                    </svg>
+                <div class="w-10 h-10 rounded-full flex items-center justify-center relative bg-slate-900 shadow-inner">
                     <div class="absolute inset-0 flex items-center justify-center text-[9px] font-bold">${prog}%</div>
+                    <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36"><path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1e293b" stroke-width="3" /><path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--accent-color)" stroke-width="3" stroke-dasharray="${prog}, 100" class="transition-all duration-500" /></svg>
                 </div>
-                <div>
-                  <h3 class="font-bold text-lg text-white truncate max-w-[140px]">${p.name}</h3>
-                  <span class="text-[10px] uppercase text-slate-500 font-bold bg-slate-900 px-2 py-0.5 rounded">${p.category}</span>
-                </div>
+                <div><h3 class="font-bold text-sm text-white truncate max-w-[120px]">${p.name}</h3><span class="text-[9px] uppercase text-slate-500 font-bold bg-slate-900 px-1.5 rounded">${p.category}</span></div>
               </div>
-              <button onclick="deleteProject('${p.id}',event)" class="text-slate-600 hover:text-red-500 btn-soft p-2"><i class="fa-solid fa-trash"></i></button>
+              <button onclick="deleteProject('${p.id}',event)" class="text-slate-600 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-trash"></i></button>
             </div>
-            <div class="flex justify-between text-xs text-slate-400 mt-2 border-t border-slate-700/50 pt-2">
-              <span><i class="fa-solid fa-box"></i> ${items.length} Items</span>
-              <span>${done} Done</span>
-            </div>
+            <div class="flex justify-between text-[10px] text-slate-400 mt-2 border-t border-slate-700/50 pt-2"><span>${items.length} Items</span><span>${done} Done</span></div>
           </div>`;
         }
-      });
+      }).join('');
+      
+      container.innerHTML = html;
     }
 
-    window.openProjectDetails = (id) => {
-      currentProjectId = id;
-      const p = projects.find((x) => x.id === id);
-      if (!p) return;
+    // ACTIONS
+    window.openProject = (id) => {
+      state.currentId = id;
+      const p = state.projects.find(x => x.id === id);
+      if(!p) return;
       document.getElementById("detailTitle").innerText = p.name;
       document.getElementById("detailCat").innerText = p.category;
       document.getElementById("projectNoteInput").value = p.notes || "";
       document.getElementById("projectLayerInput").value = p.layers || "";
-      document.getElementById("projectNoteArea").classList.add("hidden");
-      document.getElementById("projectLayerArea").classList.add("hidden");
-      const icons = { farm: "fa-wheat-awn text-emerald-400", build: "fa-hammer text-blue-400", redstone: "fa-microchip text-red-400" };
-      document.getElementById("projectIconHeader").innerHTML = `<i class="fa-solid ${icons[p.category]}"></i>`;
+      document.getElementById("projectIconHeader").innerHTML = `<i class="fa-solid ${p.category === 'farm' ? 'fa-wheat-awn' : p.category === 'redstone' ? 'fa-microchip' : 'fa-hammer'}"></i>`;
       renderItems();
-      updateDetailSummary();
       openModal("detailModal");
-      playSound('click');
     };
-
-    window.changeItemSort = (mode) => { itemSort = mode; renderItems(); playSound('click'); };
-
-    // Format Number (Stacks)
-    function formatAmount(val) {
-        if(!showStacks) return val;
-        const stacks = Math.floor(val / 64);
-        const rem = val % 64;
-        if(stacks > 0) return `${stacks}s + ${rem}`;
-        return val;
-    }
-
-    // Toggle Stack Display
-    window.toggleStackDisplay = (el) => {
-        showStacks = !showStacks;
-        renderItems();
-        playSound('click');
-    }
 
     window.renderItems = () => {
       const container = document.getElementById("itemsContainer");
-      const p = projects.find((x) => x.id === currentProjectId);
-      container.innerHTML = "";
-      container.className = isGridView ? "flex-1 overflow-y-auto p-4 bg-[#0b1120] grid-view-mode" : "flex-1 overflow-y-auto p-4 bg-[#0b1120]";
+      const p = state.projects.find(x => x.id === state.currentId);
+      if(!p || !p.items) { container.innerHTML = '<div class="text-center text-slate-500 py-10 text-xs">No items</div>'; return; }
       
-      if (!p || !p.items) {
-        container.innerHTML = '<div class="col-span-full flex flex-col items-center justify-center mt-10 text-slate-500 gap-2"><i class="fa-solid fa-cube text-3xl opacity-50"></i><p>No items yet</p></div>';
-        updateDetailSummary();
-        return;
-      }
-      let items = Object.keys(p.items).map((k) => ({ id: k, ...p.items[k] }));
-
-      items = items.sort((a, b) => {
-        const pr = (x) => x.priority === "high" ? 0 : x.priority === "normal" ? 1 : 2;
-        if (itemSort === "name") return (a.name || "").localeCompare(b.name || "");
-        if (itemSort === "amount") return (parseInt(b.amount) || 0) - (parseInt(a.amount) || 0);
-        if (itemSort === "progress") return ((parseInt(b.current)||0)/(parseInt(b.amount)||1)) - ((parseInt(a.current)||0)/(parseInt(a.amount)||1));
-        if (itemSort === "completed") return a.completed === b.completed ? 0 : a.completed ? 1 : -1;
-        const d = pr(a) - pr(b);
-        if (d !== 0) return d;
-        return (a.name || "").localeCompare(b.name || "");
+      container.className = state.isGrid ? "flex-1 overflow-y-auto p-4 bg-[#0b1120] grid-view-mode" : "flex-1 overflow-y-auto p-4 bg-[#0b1120] space-y-2";
+      
+      const items = Object.keys(p.items).map(k => ({id:k, ...p.items[k]})).sort((a,b) => {
+        if(state.sort==='priority') return (a.priority==='high'?0:1) - (b.priority==='high'?0:1);
+        return 0; // Simplified sort for performance
       });
 
-      let allDone = true;
-      items.forEach((item) => {
-        if (!item.completed) allDone = false;
-        const pct = Math.min(100, Math.round(((parseInt(item.current) || 0) / (parseInt(item.amount) || 1)) * 100));
-        const badge = item.priority === "high" ? '<span class="item-badge text-[9px] bg-red-900 text-red-300 px-1 rounded ml-1 animate-pulse">🔥</span>' : "";
-        const enchantClass = item.priority === "high" && !item.completed ? "enchanted" : ""; // Enchant Effect
+      const html = items.map(item => {
+         const pct = Math.round(((item.current||0)/(item.amount||1))*100);
+         const tex = textures.server[item.itemId] || textures.custom[item.itemId] || `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${item.itemId}.png`;
+         const displayAmt = state.showStacks ? (Math.floor(item.amount/64) > 0 ? `${Math.floor(item.amount/64)}s + ${item.amount%64}` : item.amount) : item.amount;
+         const isDone = item.completed;
 
-        const texSrc = serverTextures[item.itemId] ? serverTextures[item.itemId] : customTextures[item.itemId] ? customTextures[item.itemId] : `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${item.itemId}.png`;
-
-        // Render HTML based on view mode
-        const displayedAmount = formatAmount(parseInt(item.amount) || 0);
-
-        container.innerHTML += `
-        <div class="item-card relative overflow-hidden rounded mb-2 border transition-all hover:bg-slate-800 ${enchantClass} ${item.completed ? "border-emerald-900/50 bg-emerald-900/10 opacity-60 grayscale" : "border-slate-700 bg-slate-800/40"}">
-          <div class="absolute top-0 left-0 bg-[var(--accent-color)] opacity-10 h-full transition-all duration-700" style="width:${pct}%"></div>
-          
-          <div class="relative flex items-center gap-3 p-3">
-            <button onclick="toggleItem('${item.id}',${item.completed},${item.amount})" class="w-6 h-6 rounded border flex items-center justify-center shrink-0 transition-colors ${item.completed ? "bg-emerald-500 border-emerald-500 hover:bg-emerald-600" : "border-slate-600 hover:border-slate-400"}">
-              ${item.completed ? '<i class="fa-solid fa-check text-xs text-white"></i>' : ''}
-            </button>
-            
-            <img src="${texSrc}" class="w-8 h-8 pixel-art cursor-pointer hover:scale-110 transition-transform" title="Change Texture" data-id="${item.itemId}" onclick="openTextureUpload('${item.itemId}')" onerror="fallbackTexture(this)">
-            
-            <div class="flex-1 min-w-0 flex flex-col justify-center">
-              <div class="flex items-center">
-                <p class="text-sm font-medium text-slate-200 truncate cursor-help" title="${item.name}">${item.name}</p>
-                ${badge}
-              </div>
-              <div class="w-full bg-slate-700/50 h-1 rounded-full mt-1 item-details">
-                <div class="theme-bg h-full transition-all duration-500" style="width:${pct}%"></div>
-              </div>
+         return `<div class="item-card relative overflow-hidden rounded border transition-all hover:bg-slate-800 ${isDone ? 'border-emerald-900/50 bg-emerald-900/10 opacity-60' : 'border-slate-700 bg-slate-800/40'} ${item.priority==='high' && !isDone ? 'enchanted' : ''}">
+            <div class="absolute top-0 left-0 bg-[var(--accent-color)] opacity-5 h-full transition-all duration-500" style="width:${pct}%"></div>
+            <div class="relative flex items-center gap-3 p-2">
+               <button onclick="toggleItem('${item.id}',${isDone},${item.amount})" class="w-5 h-5 rounded border flex items-center justify-center shrink-0 ${isDone?'bg-emerald-500 border-emerald-500':'border-slate-600'}">${isDone?'<i class="fa-solid fa-check text-[10px] text-white"></i>':''}</button>
+               <img src="${tex}" class="w-6 h-6 pixel-art cursor-pointer" onclick="uploadTex('${item.itemId}')" onerror="this.src='https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/barrier.png'">
+               <div class="flex-1 min-w-0 flex flex-col justify-center text-left">
+                  <div class="flex items-center"><span class="text-xs font-medium text-slate-200 truncate">${item.name}</span>${item.priority==='high'?'<span class="text-[8px] text-red-400 ml-1">🔥</span>':''}</div>
+                  <div class="w-full bg-slate-700/50 h-0.5 rounded-full mt-1 item-details"><div class="theme-bg h-full" style="width:${pct}%"></div></div>
+               </div>
+               <div class="flex items-center gap-1 bg-slate-950/50 rounded px-1 border border-slate-700 item-details">
+                  <input type="number" value="${item.current||0}" onchange="updProg('${item.id}',this.value,${item.amount})" class="w-8 bg-transparent text-right text-white outline-none font-mono text-[10px]">
+                  <span class="text-slate-500 text-[9px]">/${displayAmt}</span>
+               </div>
+               <button onclick="delItem('${item.id}')" class="text-slate-600 hover:text-red-400 px-1 item-details"><i class="fa-solid fa-trash-can text-xs"></i></button>
             </div>
-            
-            <div class="flex items-center gap-1 bg-slate-950/50 rounded p-1 border border-slate-700 item-details">
-              <input type="number" value="${item.current || 0}" onchange="updateProgress('${item.id}',this.value,${item.amount})" class="w-12 bg-transparent text-right text-white outline-none font-mono text-sm">
-              <span class="text-slate-500 text-xs cursor-pointer select-none" onclick="toggleStackDisplay()">${showStacks ? 'stk' : '/' + displayedAmount}</span>
-            </div>
-            
-            <button onclick="removeItem('${item.id}')" class="text-slate-600 hover:text-red-400 px-2 item-details"><i class="fa-solid fa-trash-can"></i></button>
-          </div>
-        </div>`;
-      });
-      if (allDone && items.length > 0) confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, colors: ['#10b981', '#34d399'] });
-      updateDetailSummary();
+         </div>`;
+      }).join('');
+      
+      container.innerHTML = html;
     };
 
+    // GLOBAL FUNCS
+    window.toggleItem = (id, done, amt) => {
+        if(!done) { confetti({particleCount:30, spread:50, origin:{y:0.7}, disableForReducedMotion:true}); playSound('success'); }
+        update(ref(db, `projects/${state.currentId}/items/${id}`), { completed: !done, current: !done ? amt : 0 });
+    };
+    window.updProg = (id, val, max) => {
+        const v = Math.min(max, Math.max(0, parseInt(val)||0));
+        update(ref(db, `projects/${state.currentId}/items/${id}`), { current: v, completed: v>=max });
+    };
+    window.delItem = (id) => { if(confirm('Delete?')) remove(ref(db, `projects/${state.currentId}/items/${id}`)); };
     window.handleAddItem = () => {
-      const name = document.getElementById("newItemName").value;
-      const amount = document.getElementById("newItemAmount").value || 1;
-      const priority = document.getElementById("newItemPriority").value;
-      const id = document.getElementById("newItemId").value || name.toLowerCase().replace(/ /g, "_");
-      
-      if (name && currentProjectId) {
-        playSound('click');
-        const newItem = { name, itemId: id, amount, current: 0, completed: false, priority };
-        push(ref(db, `projects/${currentProjectId}/items`), newItem);
-        document.getElementById("newItemName").value = "";
-        document.getElementById("newItemAmount").value = "";
-        document.getElementById("newItemName").focus();
-        document.getElementById("newItemId").value = "";
-        addLog(`Added item: ${name}`);
-      }
+       const n = document.getElementById("newItemName").value;
+       const a = document.getElementById("newItemAmount").value || 1;
+       const p = document.getElementById("newItemPriority").value;
+       if(n && state.currentId) {
+          push(ref(db, `projects/${state.currentId}/items`), { name: n, itemId: document.getElementById("newItemId").value || n.toLowerCase(), amount: a, current:0, completed:false, priority:p });
+          document.getElementById("newItemName").value = "";
+          playSound('click');
+       }
     };
-
-    window.toggleItem = (id, done, target) => {
-      const p = projects.find((x) => x.id === currentProjectId);
-      playSound(done ? 'click' : 'success'); // Sound logic
-      if(!done) { 
-        confetti({ particleCount: 30, spread: 40, origin: { y: 0.8 }, ticks: 100, gravity: 0.8, scalar: 0.8 }); 
-        showToast('Item Completed!', 'success');
-      }
-      update(ref(db, `projects/${currentProjectId}/items/${id}`), { completed: !done, current: !done ? target : 0 });
-    };
-
-    window.updateProgress = (id, val, target) => {
-      const v = Math.min(target, Math.max(0, parseInt(val) || 0));
-      update(ref(db, `projects/${currentProjectId}/items/${id}`), { current: v, completed: v >= target });
-    };
-
-    window.removeItem = (id) => {
-      if(confirm('Delete this item?')) {
-          playSound('delete');
-          remove(ref(db, `projects/${currentProjectId}/items/${id}`));
-      }
-    };
-
-    window.toggleNote = () => document.getElementById("projectNoteArea").classList.toggle("hidden");
-    window.toggleLayers = () => document.getElementById("projectLayerArea").classList.toggle("hidden");
     
-    window.saveNote = () => update(ref(db, `projects/${currentProjectId}`), { notes: document.getElementById("projectNoteInput").value });
-    window.saveLayers = () => update(ref(db, `projects/${currentProjectId}`), { layers: document.getElementById("projectLayerInput").value });
-
-    window.copyProjectCode = () => {
-      if (!currentProjectId) return;
-      navigator.clipboard.writeText(currentProjectId).then(() => showToast("Project ID Copied!"));
+    // UI UTILS
+    window.toggleCompactMode = () => { state.isCompact = !state.isCompact; localStorage.setItem("mcCompact", state.isCompact); document.getElementById("compactBtn").innerHTML = state.isCompact ? '<i class="fa-solid fa-toggle-on text-emerald-400 text-xl"></i>' : '<i class="fa-solid fa-toggle-off text-xl"></i>'; renderProjects(); };
+    window.toggleGridView = () => { state.isGrid = !state.isGrid; localStorage.setItem("mcGridView", state.isGrid); renderItems(); };
+    window.toggleSound = () => { state.sound = !state.sound; localStorage.setItem("mcSound", state.sound); document.getElementById("soundBtn").classList.toggle("text-slate-500"); };
+    window.toggleStackDisplay = () => { state.showStacks = !state.showStacks; renderItems(); };
+    window.changeBiome = (v) => { 
+        const bg = document.getElementById('bg-layer');
+        if(v==='nether') { bg.style.backgroundImage = 'linear-gradient(rgba(20,5,5,0.9),rgba(20,5,5,0.95)), url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/netherrack.png")'; document.documentElement.style.setProperty('--accent-color','#ef4444'); }
+        else if(v==='end') { bg.style.backgroundImage = 'linear-gradient(rgba(5,5,15,0.9),rgba(5,5,15,0.95)), url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/end_stone.png")'; document.documentElement.style.setProperty('--accent-color','#d946ef'); }
+        else { bg.style.backgroundImage = 'linear-gradient(rgba(15,23,42,0.85),rgba(15,23,42,0.95)), url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/dirt.png")'; document.documentElement.style.setProperty('--accent-color','#8b5cf6'); }
     };
+    window.filterProjects = (v, t) => { if(t==='search') state.search=v.toLowerCase(); else state.filterCat=v; renderProjects(); };
+    window.uploadTex = (id) => { textureUploadId = id; document.getElementById("textureInput").click(); };
+    window.handleTextureUpload = (el) => { const f=el.files[0]; if(f){ const r=new FileReader(); r.onload=(e)=>{ set(ref(db, "textures/"+textureUploadId), e.target.result); }; r.readAsDataURL(f); } el.value=''; };
+    window.fallbackTexture = (i) => i.src = 'https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/barrier.png';
 
-    window.importProjectFromCode = async () => {
-      const code = document.getElementById("importCodeInput").value.trim();
-      if (!code) return;
-      try {
-        const snap = await get(ref(db, "projects/" + code));
-        if (!snap.exists()) { showToast("Invalid Project Code", "error"); return; }
-        const data = snap.val();
-        push(ref(db, "projects"), { ...data, name: (data.name) + " (Imported)", timestamp: Date.now() });
-        showToast("Project Imported Successfully!", "success");
-        closeModal("projectModal");
-      } catch (err) { showToast("Import Failed", "error"); }
-    };
-
-    window.copyProjectList = () => {
-      const p = projects.find((x) => x.id === currentProjectId);
-      if (!p || !p.items) return;
-      const lines = Object.values(p.items).map((it) => `${it.completed ? '[x]' : '[ ]'} ${it.amount} x ${it.name}`);
-      navigator.clipboard.writeText(`${p.name} List:\n` + lines.join("\n")).then(() => showToast("List Copied to Clipboard!"));
-    };
-
-    // 10. CSV Export
-    window.exportToCSV = () => {
-        let csvContent = "data:text/csv;charset=utf-8,Project,Item,Amount,Status\n";
-        projects.forEach(p => {
-            if(p.items) {
-                Object.values(p.items).forEach(i => {
-                    csvContent += `${p.name},${i.name},${i.amount},${i.completed ? 'Done' : 'Pending'}\n`;
-                });
-            }
-        });
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "minecraft_projects.csv");
-        document.body.appendChild(link);
-        link.click();
-        showToast("CSV Exported!");
+    // MODALS
+    window.openModal = (id) => { const m=document.getElementById(id); m.classList.remove("hidden"); setTimeout(()=>m.querySelector(".modal-panel").classList.remove("opacity-0","scale-95"),10); };
+    window.closeModal = (id) => { const m=document.getElementById(id); m.querySelector(".modal-panel").classList.add("opacity-0","scale-95"); setTimeout(()=>m.classList.add("hidden"),200); };
+    window.selectCategory = (c) => { document.querySelectorAll(".cat-btn").forEach(b=>b.classList.remove("bg-slate-600","text-white")); document.getElementById("cat-btn-"+c).classList.add("bg-slate-600","text-white"); document.getElementById("selectedCat").value=c; };
+    window.handleAddProject = () => { const n=document.getElementById("newProjectName").value; if(n){ push(ref(db,"projects"),{name:n,category:document.getElementById("selectedCat").value}); closeModal("projectModal"); document.getElementById("newProjectName").value=""; } };
+    
+    // DASHBOARD & TRASH
+    function updateDashboard() {
+        const total = state.projects.length;
+        const allItems = state.projects.reduce((a,p)=>a+(p.items?Object.keys(p.items).length:0),0);
+        const done = state.projects.reduce((a,p)=>a+(p.items?Object.values(p.items).filter(i=>i.completed).length:0),0);
+        document.getElementById("totalProjects").innerText = total;
+        document.getElementById("completionRate").innerText = allItems ? Math.round((done/allItems)*100)+"%" : "0%";
+        document.getElementById("globalXpBar").style.width = allItems ? (done/allItems)*100+"%" : "0%";
+        document.getElementById("levelDisplay").innerText = "LVL "+Math.floor(done/5);
     }
-
-    window.openTextureUpload = (itemId) => {
-      currentTextureItemId = itemId;
-      document.getElementById("textureInput").click();
-    };
-
-    window.handleTextureUpload = (input) => {
-      const file = input.files[0];
-      if (!file || !currentTextureItemId) return;
-      const itemId = currentTextureItemId;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        set(ref(db, "textures/" + itemId), e.target.result).then(() => {
-            serverTextures[itemId] = e.target.result;
-            showToast("Texture Uploaded!", "success");
-        });
-        input.value = "";
-      };
-      reader.readAsDataURL(file);
-    };
-
-    window.deleteProject = (id, e) => {
-      e.stopPropagation();
-      playSound('delete');
-      const p = projects.find((x) => x.id === id);
-      if (confirm(`Delete "${p.name}"?`)) {
-        trash.push(p);
-        localStorage.setItem("mcTrash", JSON.stringify(trash));
-        remove(ref(db, `projects/${id}`));
-        addLog(`Deleted Project: ${p.name}`);
-        showToast("Project moved to Recycle Bin");
-      }
-    };
-
-    window.selectCategory = (cat) => {
-      document.querySelectorAll(".cat-btn").forEach((b) => b.classList.remove("bg-slate-700", "text-white"));
-      document.getElementById(`cat-btn-${cat}`).classList.add("bg-slate-700", "text-white");
-      document.getElementById("selectedCat").value = cat;
-      playSound('click');
-    };
-
-    window.handleAddProject = () => {
-      const name = document.getElementById("newProjectName").value;
-      if (name) {
-        playSound('success');
-        push(ref(db, "projects"), { name, category: document.getElementById("selectedCat").value, timestamp: Date.now() });
-        closeModal("projectModal");
-        document.getElementById("newProjectName").value = "";
-        addLog(`Created Project: ${name}`);
-      }
-    };
-
-    window.searchItems = (val) => {
-      const box = document.getElementById("suggestionBox");
-      if (!val) { box.classList.add("hidden"); return; }
-      const matches = GLOBAL_ITEMS.filter((i) => i.name.toLowerCase().includes(val.toLowerCase())).slice(0, 10);
-      box.innerHTML = matches.map((i) => `
-        <div class="p-2 hover:bg-slate-700 cursor-pointer flex items-center gap-2" onclick="selectSearchItem('${i.name}','${i.id}')">
-          <img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${i.id}.png" class="w-4 h-4 pixel-art" onerror="fallbackTexture(this)">
-          ${i.name}
-        </div>`).join("");
-      box.classList.remove("hidden");
-    };
-
-    window.selectSearchItem = (n, i) => {
-      document.getElementById("newItemName").value = n;
-      document.getElementById("newItemId").value = i;
-      document.getElementById("suggestionBox").classList.add("hidden");
-      document.getElementById("newItemAmount").focus();
-    };
-
-    window.openModal = (id) => {
-      const modal = document.getElementById(id);
-      if (!modal) return;
-      modal.classList.remove("hidden");
-      modal.classList.add("flex");
-      playSound('click');
-      setTimeout(() => {
-        const panel = modal.querySelector(".modal-panel");
-        panel.classList.remove("opacity-0", "scale-95");
-        panel.classList.add("opacity-100", "scale-100");
-      }, 10);
-    };
-
-    window.closeModal = (id) => {
-      const modal = document.getElementById(id);
-      const panel = modal.querySelector(".modal-panel");
-      panel.classList.remove("opacity-100", "scale-100");
-      panel.classList.add("opacity-0", "scale-95");
-      setTimeout(() => { modal.classList.remove("flex"); modal.classList.add("hidden"); }, 150);
-    };
-
-    window.backupData = () => {
-      const a = document.createElement("a");
-      a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects));
-      a.download = `mc_backup_${new Date().toISOString().slice(0,10)}.json`;
-      a.click();
-      showToast("Backup Downloaded!", "success");
-    };
-
-    window.restoreData = (i) => {
-      const f = i.files[0];
-      if (!f) return;
-      const r = new FileReader();
-      r.onload = (e) => {
-        JSON.parse(e.target.result).forEach((p) => { delete p.id; push(ref(db, "projects"), p); });
-        showToast("Data Restored!", "success");
-      };
-      r.readAsText(f);
-    };
-
-    window.completeAllItems = () => {
-      if (confirm("Complete all items in this project?")) {
-        playSound('success');
-        const p = projects.find((x) => x.id === currentProjectId);
-        Object.keys(p.items).forEach((k) => update(ref(db, `projects/${currentProjectId}/items/${k}`), { completed: true, current: p.items[k].amount }));
-      }
+    window.deleteProject = (id,e) => { e.stopPropagation(); const p=state.projects.find(x=>x.id===id); if(confirm("Delete?")){ state.trash.push(p); localStorage.setItem("mcTrash",JSON.stringify(state.trash)); remove(ref(db,`projects/${id}`)); } };
+    window.openTrash = () => { document.getElementById("trashList").innerHTML = state.trash.map((p,i)=>`<div class="flex justify-between bg-slate-800 p-2 rounded border border-slate-700 text-slate-300"><span>${p.name}</span><button onclick="restoreProject(${i})" class="text-green-400 hover:text-green-300"><i class="fa-solid fa-rotate-left"></i></button></div>`).join(""); openModal("trashModal"); };
+    window.restoreProject = (i) => { push(ref(db,"projects"),state.trash[i]); state.trash.splice(i,1); localStorage.setItem("mcTrash",JSON.stringify(state.trash)); openTrash(); };
+    window.searchItems = (v) => {
+        const b = document.getElementById("suggestionBox");
+        if(!v){ b.classList.add("hidden"); return; }
+        b.innerHTML = globalItems.filter(i=>i.name.toLowerCase().includes(v.toLowerCase())).slice(0,5).map(i=>`<div class="p-2 hover:bg-slate-700 cursor-pointer flex gap-2 items-center text-xs text-slate-300" onclick="document.getElementById('newItemName').value='${i.name}';document.getElementById('newItemId').value='${i.id}';this.parentElement.classList.add('hidden')"><img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${i.id}.png" class="w-4 h-4 pixel-art">${i.name}</div>`).join("");
+        b.classList.remove("hidden");
     };
   </script>
 </body>
