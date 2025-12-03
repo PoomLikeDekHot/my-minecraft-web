@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Minecraft Manager: Ultimate Edition</title>
+  <title>Minecraft Manager: Ultimate Hybrid</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -15,17 +15,21 @@
         extend: {
           fontFamily: { sans: ["Kanit", "sans-serif"], pixel: ['"Press Start 2P"', 'cursive'] },
           colors: { 
-            mcDark: "#111111", 
-            mcPanel: "rgba(30, 41, 59, 0.75)",
-            accent: "#8b5cf6"
+            mcDark: "#020617", 
+            mcPanel: "rgba(15, 23, 42, 0.75)",
+            accent: "var(--accent-color)"
           },
           animation: {
             'float': 'float 6s ease-in-out infinite',
-            'popup': 'popup 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+            'popup': 'popup 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
           },
           keyframes: {
-            float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
-            popup: { '0%': { opacity: 0, transform: 'scale(0.9)' }, '100%': { opacity: 1, transform: 'scale(1)' } }
+            float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-6px)' } },
+            popup: { '0%': { opacity: 0, transform: 'scale(0.9) translateY(8px)' }, '100%': { opacity: 1, transform: 'scale(1) translateY(0)' } }
+          },
+          boxShadow: {
+            "mc-soft": "0 18px 45px rgba(2,6,23,0.6)",
           }
         }
       }
@@ -33,260 +37,377 @@
   </script>
 
   <style>
-    :root { --accent-color: #8b5cf6; --glass-border: rgba(255, 255, 255, 0.1); }
+    :root { 
+        --accent-color: #8b5cf6; 
+        --bg-gradient-start: #0f172a;
+        --bg-gradient-end: #020617;
+        --glass-border: rgba(255, 255, 255, 0.08);
+    }
     
     body { background-color: #050505; color: #e2e8f0; overflow-x: hidden; cursor: default; }
 
-    /* Dynamic Background */
+    /* Optimized Background */
     #bg-layer {
       position: fixed; inset: 0; z-index: -2;
-      background-image: url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/stone.png");
-      background-size: 128px; filter: brightness(0.2); transition: all 1s ease;
+      background: radial-gradient(circle at top, var(--accent-color) 0%, var(--bg-gradient-start) 45%, var(--bg-gradient-end) 100%);
+      opacity: 0.6; transition: all 1s ease;
     }
-    #bg-gradient {
-      position: fixed; inset: 0; z-index: -1;
-      background: radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.15), transparent 70%); pointer-events: none;
+    #bg-grid {
+        position: fixed; inset: 0; z-index: -1;
+        background-image: 
+            linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        background-size: 50px 50px;
+        mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
+        pointer-events: none;
     }
 
-    /* Modern Glass Panel */
+    /* Modern Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
+    ::-webkit-scrollbar-thumb:hover { background-color: rgba(255,255,255,0.2); }
+
     .glass-morphism {
-      background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--glass-border); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      background: rgba(15, 23, 42, 0.65); 
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border); 
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
     }
 
-    .pixel-art { image-rendering: pixelated; }
+    .pixel-art { image-rendering: pixelated; will-change: transform; }
 
     /* Custom Checkbox */
-    .mc-checkbox { appearance: none; width: 20px; height: 20px; border: 2px solid #64748b; border-radius: 4px; display: grid; place-content: center; transition: 0.2s; cursor: pointer; }
-    .mc-checkbox::before { content: ""; width: 10px; height: 10px; transform: scale(0); transition: 0.1s transform ease-in-out; box-shadow: inset 10px 10px var(--accent-color); transform-origin: center; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%); }
-    .mc-checkbox:checked { border-color: var(--accent-color); background: rgba(139, 92, 246, 0.1); }
+    .mc-checkbox { appearance: none; width: 20px; height: 20px; border: 2px solid #475569; border-radius: 6px; display: grid; place-content: center; transition: 0.2s; cursor: pointer; background: rgba(0,0,0,0.3); }
+    .mc-checkbox::before { content: "\f00c"; font-family: "Font Awesome 6 Free"; font-weight: 900; font-size: 10px; color: var(--accent-color); transform: scale(0); transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .mc-checkbox:checked { border-color: var(--accent-color); background: rgba(139, 92, 246, 0.15); }
     .mc-checkbox:checked::before { transform: scale(1); }
 
-    /* Toast */
+    /* Modern Toast */
     .achievement-toast {
-      background: #232323; border: 2px solid #ffffff; padding: 8px 16px; display: flex; align-items: center; gap: 12px;
-      color: #ffff55; font-family: 'Press Start 2P', cursive; font-size: 10px;
-      box-shadow: 0 0 0 2px #232323, 4px 4px 0 rgba(0,0,0,0.5);
-      animation: slideDown 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards, fadeOut 0.5s 3s forwards; min-width: 280px;
+      background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.1); padding: 12px 16px; display: flex; align-items: center; gap: 12px;
+      color: white; border-radius: 12px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6);
+      animation: slideInRight 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards, fadeOut 0.5s 3.5s forwards; 
+      min-width: 280px; transform: translateX(120%); z-index: 100;
     }
-    @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    @keyframes fadeOut { to { opacity: 0; pointer-events: none; } }
-    .card-3d { transition: transform 0.3s ease, box-shadow 0.3s ease; transform-style: preserve-3d; }
-    .card-3d:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 20px 40px -5px rgba(0,0,0,0.4); border-color: var(--accent-color); }
-    
-    /* Input Number Hide Arrows */
-    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    @keyframes slideInRight { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); pointer-events: none; } }
 
-    /* Circle Grid */
-    .pixel-grid { display: grid; gap: 1px; background: #333; margin: 0 auto; }
-    .pixel-cell { width: 10px; height: 10px; background: #1e293b; }
-    .pixel-cell.active { background: #8b5cf6; box-shadow: 0 0 4px #8b5cf6; }
+    .card-3d { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
+    .card-3d:active { transform: scale(0.98); }
     
-    .stepper-btn:active { transform: scale(0.9); background-color: rgba(255,255,255,0.1); }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    
+    .filter-chip { @apply px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer border border-slate-700/50 transition-all bg-slate-900/50 text-slate-400 hover:bg-slate-800 hover:text-white hover:border-slate-600; }
+    .filter-chip.active { @apply bg-[var(--accent-color)] text-white border-[var(--accent-color)] shadow-lg shadow-purple-500/20; }
+    
+    .progress-gradient { background-image: linear-gradient(90deg, #22c55e, #a3e635, #22c55e); }
+    
+    .stepper-btn { @apply w-8 h-8 flex items-center justify-center rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 hover:bg-slate-700 transition-all active:scale-95; }
   </style>
 </head>
 
-<body class="min-h-screen font-sans selection:bg-purple-500/30">
+<body class="min-h-screen font-sans antialiased selection:bg-[var(--accent-color)] selection:text-white">
   <div id="bg-layer"></div>
-  <div id="bg-gradient"></div>
-  <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
+  <div id="bg-grid"></div>
+  <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
 
-  <div class="p-4 md:p-6 max-w-7xl mx-auto transition-all duration-500" id="mainApp">
+  <div class="max-w-[1400px] mx-auto px-4 py-6 md:py-8 h-screen flex flex-col">
     
-    <header class="flex flex-col xl:flex-row justify-between items-center gap-6 mb-8 animate-popup">
+    <header class="flex flex-col xl:flex-row justify-between items-center gap-6 mb-6 animate-popup shrink-0">
       <div class="flex items-center gap-4">
-        <div class="relative group">
-          <div class="w-14 h-14 bg-slate-800 rounded-xl flex items-center justify-center border-2 border-slate-600 shadow-lg group-hover:border-[var(--accent-color)] transition-colors">
-            <img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/diamond_pickaxe.png" class="w-8 h-8 pixel-art animate-float">
+        <div class="relative group cursor-pointer" onclick="openModal('statsModal')">
+          <div class="w-14 h-14 bg-slate-900/80 rounded-2xl flex items-center justify-center border border-slate-700 shadow-lg group-hover:border-[var(--accent-color)] group-hover:shadow-[var(--accent-color)]/20 transition-all duration-300">
+            <img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/diamond_pickaxe.png" class="w-8 h-8 pixel-art animate-float" loading="lazy">
           </div>
-          <div class="absolute -bottom-1 -right-1 bg-emerald-500 text-black text-[10px] px-1.5 rounded font-bold">ULT</div>
+          <div class="absolute -bottom-1 -right-1 bg-emerald-500 text-black text-[9px] px-1.5 py-0.5 rounded-full font-bold shadow-lg border-2 border-[#050505]">HYBRID</div>
         </div>
         <div>
-          <h1 class="text-3xl font-bold tracking-tight text-white drop-shadow-lg">MC <span class="text-[var(--accent-color)]">Manager</span></h1>
-          <div class="flex items-center gap-2 text-xs text-slate-400 mt-1">
-             <i class="fa-solid fa-server"></i> <span id="connectionStatus">Online</span>
-             <span class="w-1 h-1 bg-slate-600 rounded-full"></span>
-             <span id="globalProgress">0% Completed</span>
+          <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-white drop-shadow-xl">MC <span class="text-[var(--accent-color)] transition-colors">Manager</span></h1>
+          <div class="flex items-center gap-3 text-xs text-slate-400 mt-1 font-medium">
+             <div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> <span id="connectionStatus">Online</span></div>
+             <span class="w-1 h-1 bg-slate-700 rounded-full"></span>
+             <span id="globalProgress" class="text-slate-300">Loading...</span>
           </div>
         </div>
       </div>
 
-      <div class="flex flex-wrap justify-center gap-2 p-1.5 bg-slate-900/80 rounded-xl border border-slate-700 backdrop-blur-sm">
-        <button onclick="changeBiome('overworld')" class="w-9 h-9 rounded-lg hover:bg-slate-700 text-emerald-400 transition-all tooltip" title="Overworld"><i class="fa-solid fa-tree"></i></button>
-        <button onclick="changeBiome('nether')" class="w-9 h-9 rounded-lg hover:bg-slate-700 text-red-500 transition-all tooltip" title="Nether"><i class="fa-solid fa-fire"></i></button>
-        <button onclick="changeBiome('end')" class="w-9 h-9 rounded-lg hover:bg-slate-700 text-purple-400 transition-all tooltip" title="The End"><i class="fa-solid fa-eye"></i></button>
-        <div class="w-px bg-slate-700 mx-1"></div>
+      <div class="flex flex-wrap justify-center gap-2 p-1.5 bg-slate-900/60 rounded-2xl border border-slate-700/50 backdrop-blur-md shadow-xl">
+        <div class="flex gap-1">
+            <button onclick="changeBiome('overworld')" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-emerald-400 transition-all tooltip flex items-center justify-center"><i class="fa-solid fa-tree"></i></button>
+            <button onclick="changeBiome('nether')" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-red-500 transition-all tooltip flex items-center justify-center"><i class="fa-solid fa-fire"></i></button>
+            <button onclick="changeBiome('end')" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-purple-400 transition-all tooltip flex items-center justify-center"><i class="fa-solid fa-eye"></i></button>
+        </div>
+        <div class="w-px bg-slate-700/50 mx-1 my-1.5"></div>
         
-        <button onclick="openModal('netherModal')" class="w-9 h-9 rounded-lg hover:bg-slate-700 text-pink-400 transition-all tooltip" title="Nether Calculator"><i class="fa-solid fa-calculator"></i></button>
-        <button onclick="openModal('circleModal')" class="w-9 h-9 rounded-lg hover:bg-slate-700 text-cyan-400 transition-all tooltip" title="Circle Generator"><i class="fa-regular fa-circle"></i></button>
-        <button onclick="backupData()" class="w-9 h-9 rounded-lg hover:bg-slate-700 text-blue-400 transition-all tooltip" title="Download Backup"><i class="fa-solid fa-download"></i></button>
-        <button onclick="document.getElementById('fileInput').click()" class="w-9 h-9 rounded-lg hover:bg-slate-700 text-blue-400 transition-all tooltip" title="Restore Data"><i class="fa-solid fa-upload"></i></button>
+        <button onclick="openModal('statsModal')" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-yellow-400 transition-all tooltip flex items-center justify-center" title="Stats"><i class="fa-solid fa-chart-pie"></i></button>
+        <button onclick="openModal('farmTimerModal')" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-orange-400 transition-all tooltip flex items-center justify-center" title="Timer"><i class="fa-solid fa-hourglass-half"></i></button>
+        <button onclick="openModal('enchantModal')" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-blue-400 transition-all tooltip flex items-center justify-center" title="Enchant"><i class="fa-solid fa-book-skull"></i></button>
+        <button onclick="openModal('filterSortModal')" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-pink-400 transition-all tooltip flex items-center justify-center" title="Filter"><i class="fa-solid fa-filter"></i></button>
+        
+        <div class="w-px bg-slate-700/50 mx-1 my-1.5"></div>
+        <button onclick="backupData()" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-slate-400 transition-all tooltip flex items-center justify-center" title="Backup"><i class="fa-solid fa-download"></i></button>
+        <button onclick="document.getElementById('fileInput').click()" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-slate-400 transition-all tooltip flex items-center justify-center" title="Restore"><i class="fa-solid fa-upload"></i></button>
         <input type="file" id="fileInput" class="hidden" onchange="restoreData(this)" />
-        
-        <div class="w-px bg-slate-700 mx-1"></div>
-        <button onclick="openModal('projectModal')" class="bg-[var(--accent-color)] text-white px-4 rounded-lg font-bold text-sm hover:brightness-110 shadow-lg active:scale-95 transition-all">
-          <i class="fa-solid fa-plus mr-1"></i> New
-        </button>
       </div>
     </header>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 pb-20" id="projectList"></div>
-
-    <div id="emptyState" class="hidden flex-col items-center justify-center py-20 text-slate-500">
-      <img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/map.png" class="w-16 h-16 pixel-art opacity-50 mb-4 grayscale">
-      <p>No projects found.</p>
-    </div>
-  </div>
-
-  <div id="detailModal" class="fixed inset-0 z-50 hidden transition-all duration-300">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('detailModal')"></div>
-    <div class="absolute inset-2 md:inset-10 bg-[#0f172a]/95 rounded-2xl border border-slate-700 shadow-2xl flex flex-col overflow-hidden transform scale-95 opacity-0 transition-all duration-300 modal-content">
+    <div class="flex-1 grid grid-cols-1 md:grid-cols-[minmax(280px,1fr)_2fr] gap-6 min-h-0 pb-6">
       
-      <div class="h-16 border-b border-slate-700 flex items-center justify-between px-4 md:px-6 bg-slate-900/50">
-        <div class="flex items-center gap-4">
-          <button onclick="closeModal('detailModal')" class="w-8 h-8 rounded-full hover:bg-slate-700 text-slate-400 transition-colors"><i class="fa-solid fa-arrow-left"></i></button>
-          <div>
-            <h2 id="detailTitle" class="text-lg md:text-xl font-bold text-white leading-tight">...</h2>
-            <div class="flex items-center gap-2 text-[10px] text-slate-400">
-              <span id="detailCat" class="uppercase tracking-wider">CATEGORY</span> • <span id="itemCountDisplay">0 Items</span>
-            </div>
+      <div class="glass-morphism rounded-2xl border border-slate-700/60 shadow-mc-soft p-4 flex flex-col min-h-0 animate-popup" style="animation-delay: 0.1s;">
+        <div class="flex items-center justify-between gap-3 mb-4 shrink-0">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-folder-tree text-[var(--accent-color)]"></i>
+            <h2 class="font-semibold text-slate-100 text-lg">Projects</h2>
+          </div>
+          <button onclick="openModal('projectModal')" class="px-3 py-1.5 rounded-xl bg-[var(--accent-color)] text-xs font-bold text-white shadow-lg shadow-[var(--accent-color)]/20 hover:brightness-110 active:scale-95 transition-all flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> New
+          </button>
+        </div>
+
+        <div class="flex flex-col gap-2 mb-3 shrink-0">
+          <div class="relative">
+            <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-500"></i>
+            <input id="searchProjects" type="text" placeholder="Search projects..." oninput="renderProjects()" class="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-950/50 border border-slate-700/50 focus:outline-none focus:border-[var(--accent-color)] transition-colors text-white placeholder-slate-600" />
+          </div>
+          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+             <button onclick="setProjectFilter('all')" class="filter-chip active text-[10px]" id="cat-all">All</button>
+             <button onclick="setProjectFilter('build')" class="filter-chip text-[10px]" id="cat-build">Build</button>
+             <button onclick="setProjectFilter('farm')" class="filter-chip text-[10px]" id="cat-farm">Farm</button>
+             <button onclick="setProjectFilter('redstone')" class="filter-chip text-[10px]" id="cat-redstone">Redstone</button>
           </div>
         </div>
-        <div class="flex items-center gap-2">
-            <button onclick="toggleFocusMode()" id="focusBtn" class="p-2 rounded hover:bg-slate-700 text-slate-400 text-sm"><i class="fa-solid fa-expand"></i></button>
-            <button onclick="copyToClipboard()" class="p-2 rounded hover:bg-slate-700 text-slate-400 text-sm"><i class="fa-brands fa-discord"></i></button>
-            <div class="relative hidden sm:block">
-                <input type="text" id="searchItems" placeholder="Search..." oninput="filterItems(this.value)" class="bg-slate-950 border border-slate-700 rounded-lg py-1.5 pl-8 pr-3 text-sm text-white focus:border-[var(--accent-color)] outline-none w-32 focus:w-48 transition-all" />
-                <i class="fa-solid fa-search absolute left-2.5 top-2 text-slate-500 text-xs"></i>
-            </div>
-        </div>
-      </div>
 
-      <div class="flex-1 overflow-hidden relative flex">
-         <div class="w-64 border-r border-slate-700 bg-slate-900/30 flex flex-col hidden md:flex">
-            <div class="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Sticky Notes</div>
-            <textarea id="projectNoteInput" onchange="saveNote()" class="flex-1 bg-transparent resize-none outline-none text-slate-300 text-sm p-3 placeholder-slate-600 font-mono" placeholder="Coords: 100 64 -200&#10;Needs: 5 Stacks of Log..."></textarea>
-         </div>
-         <div class="flex-1 overflow-y-auto p-3 md:p-6" id="itemsScrollArea">
-            <div id="itemsContainer" class="space-y-3 max-w-4xl mx-auto"></div>
-            <div class="h-32"></div>
-         </div>
-      </div>
-
-      <div class="absolute bottom-0 left-0 right-0 bg-[#0f172a] border-t border-slate-700 p-3 md:p-4">
-        <form onsubmit="event.preventDefault(); handleAddItem();" class="max-w-4xl mx-auto flex flex-col md:flex-row gap-3 items-stretch md:items-center">
-            
-            <div class="relative flex-1 group">
-                <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none"><i class="fa-solid fa-cube text-slate-500"></i></div>
-                <input type="hidden" id="newItemId">
-                <input type="text" id="newItemName" placeholder="Item Name (e.g. Redstone)" 
-                       class="w-full bg-slate-900 border border-slate-600 rounded-xl py-3 pl-10 pr-4 text-white focus:border-[var(--accent-color)] outline-none"
-                       oninput="searchGlobalItems(this.value)" autocomplete="off" />
-                <div id="suggestionBox" class="absolute bottom-full left-0 right-0 mb-2 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl max-h-48 overflow-y-auto hidden z-20"></div>
-            </div>
-
-            <div class="flex items-center gap-2 bg-slate-900 border border-slate-600 rounded-xl p-1.5 px-3">
-                <div class="flex flex-col items-center">
-                    <span class="text-[9px] text-slate-500 font-bold mb-0.5">STACKS</span>
-                    <input type="number" id="newStackAmt" placeholder="0" min="0" oninput="updateAddTotal()" class="w-12 bg-transparent text-center text-white outline-none font-mono text-sm border-b border-slate-700 focus:border-white transition-colors placeholder-slate-600">
-                </div>
-                <span class="text-slate-500 text-xs mt-3">x64 +</span>
-                <div class="flex flex-col items-center">
-                    <span class="text-[9px] text-slate-500 font-bold mb-0.5">UNITS</span>
-                    <input type="number" id="newSingleAmt" placeholder="0" min="0" oninput="updateAddTotal()" class="w-12 bg-transparent text-center text-white outline-none font-mono text-sm border-b border-slate-700 focus:border-white transition-colors placeholder-slate-600">
-                </div>
-                <div class="flex flex-col items-center ml-2 pl-2 border-l border-slate-700">
-                     <span class="text-[9px] text-[var(--accent-color)] font-bold mb-0.5">TOTAL</span>
-                     <span id="newTotalDisplay" class="text-sm font-bold text-white mt-1">0</span>
-                </div>
-            </div>
-
-            <div class="flex gap-2">
-                <label class="cursor-pointer relative group w-12 h-12">
-                    <input type="checkbox" id="newItemPriority" class="peer sr-only">
-                    <div class="w-full h-full rounded-xl bg-slate-900 border border-slate-600 flex items-center justify-center text-slate-500 peer-checked:text-red-400 peer-checked:border-red-500 peer-checked:bg-red-500/10 transition-all">
-                        <i class="fa-solid fa-fire"></i>
-                    </div>
-                </label>
-                <button type="submit" class="w-12 h-12 bg-[var(--accent-color)] hover:bg-purple-500 text-white rounded-xl shadow-lg flex items-center justify-center transition-transform active:scale-95">
-                    <i class="fa-solid fa-plus text-lg"></i>
-                </button>
-            </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <div id="quantityModal" class="fixed inset-0 z-[80] hidden flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('quantityModal')"></div>
-    <div class="glass-morphism p-6 rounded-2xl w-full max-w-xs m-4 relative transform scale-95 opacity-0 transition-all modal-content text-center">
-        <h3 class="text-lg font-bold text-white mb-2">Update Quantity</h3>
-        <p id="qtyItemName" class="text-xs text-slate-400 mb-6">Target: 0</p>
+        <div class="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar" id="projectList">
+             </div>
         
-        <input type="hidden" id="qtyItemId">
-        <input type="hidden" id="qtyItemMax">
+        <div id="emptyState" class="hidden flex-col items-center justify-center flex-1 text-slate-500">
+            <img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/map.png" class="w-12 h-12 pixel-art opacity-40 mb-3 grayscale">
+            <p class="text-xs">No projects found.</p>
+        </div>
+      </div>
 
-        <div class="flex items-center justify-center gap-3 mb-6">
-            <div class="flex flex-col items-center">
-                <label class="text-[10px] text-slate-500 font-bold mb-1">STACKS (x64)</label>
-                <input type="number" id="qtyStackInput" class="w-20 bg-slate-900 border border-slate-600 rounded-lg p-3 text-center text-white text-lg font-mono outline-none focus:border-[var(--accent-color)]" onclick="this.select()">
+      <div class="glass-morphism rounded-2xl border border-slate-700/60 shadow-mc-soft p-0 flex flex-col min-h-0 relative overflow-hidden animate-popup" style="animation-delay: 0.2s;">
+        <div class="p-4 border-b border-white/5 bg-slate-900/30 flex items-center justify-between gap-4 shrink-0">
+            <div class="min-w-0">
+                <div class="flex items-center gap-3">
+                    <h2 id="detailTitle" class="font-bold text-slate-100 text-xl truncate">Select a Project</h2>
+                    <span id="detailCat" class="px-2 py-0.5 rounded-md bg-slate-800/50 border border-slate-600/50 text-[10px] uppercase font-bold text-slate-400 hidden sm:inline-block">-</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-slate-400 mt-1">
+                     <span id="itemCountDisplay">0 Items</span>
+                     <span class="w-1 h-1 bg-slate-600 rounded-full"></span>
+                     <span id="detailServer" class="truncate max-w-[150px]">-</span>
+                </div>
             </div>
-            <span class="text-slate-500 mt-5">+</span>
-            <div class="flex flex-col items-center">
-                <label class="text-[10px] text-slate-500 font-bold mb-1">UNITS</label>
-                <input type="number" id="qtyUnitInput" class="w-20 bg-slate-900 border border-slate-600 rounded-lg p-3 text-center text-white text-lg font-mono outline-none focus:border-[var(--accent-color)]" onclick="this.select()">
+            
+            <div class="flex items-center gap-2">
+                <div class="relative hidden sm:block">
+                    <input type="text" id="searchItems" placeholder="Search items..." oninput="renderItems()" class="bg-slate-950/50 border border-slate-700/50 rounded-lg py-1.5 pl-8 pr-3 text-xs text-white focus:border-[var(--accent-color)] outline-none w-32 focus:w-48 transition-all" />
+                    <i class="fa-solid fa-search absolute left-2.5 top-2 text-slate-500 text-[10px]"></i>
+                </div>
+                <button onclick="openModal('projectModal')" class="w-8 h-8 rounded-lg border border-slate-700/50 hover:bg-slate-800 text-slate-400 transition-colors flex items-center justify-center"><i class="fa-solid fa-pen"></i></button>
             </div>
         </div>
 
-        <button onclick="saveQuantity()" class="w-full bg-[var(--accent-color)] py-3 rounded-lg text-white font-bold shadow-lg hover:brightness-110 active:scale-95 transition-all">
-            Save Changes
-        </button>
+        <div class="flex-1 overflow-y-auto p-4 custom-scrollbar bg-slate-950/20" id="itemsContainerWrapper">
+             <div id="itemsContainer" class="flex flex-col gap-2 pb-20"></div>
+        </div>
+
+        <div class="absolute bottom-0 left-0 right-0 p-4 bg-[#0f172a]/95 border-t border-slate-700/50 backdrop-blur-md z-10">
+            <form onsubmit="event.preventDefault(); handleAddItem();" class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                <div class="relative flex-1 group">
+                    <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none"><i class="fa-solid fa-plus text-slate-500 text-xs"></i></div>
+                    <input type="hidden" id="newItemId">
+                    <input type="text" id="newItemName" placeholder="Add Item (e.g. Redstone)" 
+                           class="w-full bg-slate-900 border border-slate-600 rounded-xl py-2.5 pl-9 pr-3 text-sm text-white focus:border-[var(--accent-color)] outline-none shadow-inner transition-colors"
+                           oninput="searchGlobalItems(this.value)" autocomplete="off" />
+                    <div id="suggestionBox" class="absolute bottom-full left-0 right-0 mb-2 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl max-h-48 overflow-y-auto hidden z-20 custom-scrollbar"></div>
+                </div>
+    
+                <div class="flex items-center gap-0 bg-slate-900 border border-slate-600 rounded-xl p-0.5 shadow-inner">
+                    <div class="px-2 flex flex-col items-center border-r border-slate-700">
+                        <span class="text-[8px] text-slate-500 font-bold uppercase">Stacks</span>
+                        <input type="number" id="newStackAmt" placeholder="0" min="0" oninput="updateAddTotal()" class="w-10 bg-transparent text-center text-white outline-none font-mono text-sm placeholder-slate-600">
+                    </div>
+                    <div class="px-2 flex flex-col items-center">
+                        <span class="text-[8px] text-slate-500 font-bold uppercase">Units</span>
+                        <input type="number" id="newSingleAmt" placeholder="0" min="0" oninput="updateAddTotal()" class="w-10 bg-transparent text-center text-white outline-none font-mono text-sm placeholder-slate-600">
+                    </div>
+                </div>
+    
+                <button type="submit" class="h-10 w-10 sm:w-12 bg-[var(--accent-color)] hover:brightness-110 text-white rounded-xl shadow-lg flex items-center justify-center transition-transform active:scale-95 shrink-0">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div id="netherModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('netherModal')"></div>
+  <div id="statsModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('statsModal')"></div>
+    <div class="glass-morphism p-6 rounded-3xl w-full max-w-2xl m-4 relative transform scale-95 opacity-0 transition-all modal-content">
+        <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+            <h3 class="text-xl font-bold text-white flex items-center gap-3"><i class="fa-solid fa-chart-pie text-yellow-400"></i> Dashboard Statistics</h3>
+            <button onclick="closeModal('statsModal')" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 flex items-center justify-center"><i class="fa-solid fa-times"></i></button>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 text-center">
+                <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Projects</div>
+                <div class="text-2xl font-bold text-white" id="statsTotalProjects">0</div>
+            </div>
+            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 text-center">
+                <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Items</div>
+                <div class="text-2xl font-bold text-white" id="statsTotalItems">0</div>
+            </div>
+            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 text-center">
+                <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Completed</div>
+                <div class="text-2xl font-bold text-emerald-400" id="statsCompletedItems">0</div>
+            </div>
+            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 text-center">
+                <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Progress</div>
+                <div class="text-2xl font-bold text-[var(--accent-color)]" id="statsCompletionRate">0%</div>
+            </div>
+        </div>
+        
+        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+             <div class="text-xs text-slate-400 uppercase mb-3">Top Active Projects</div>
+             <div id="statsTopProjects" class="space-y-2"></div>
+        </div>
+    </div>
+  </div>
+
+  <div id="farmTimerModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('farmTimerModal')"></div>
+    <div class="glass-morphism p-6 rounded-2xl w-full max-w-sm m-4 relative transform scale-95 opacity-0 transition-all modal-content text-center">
+        <h3 class="text-xl font-bold text-orange-400 mb-6 flex items-center justify-center gap-2"><i class="fa-solid fa-hourglass-half"></i> Farm Timer</h3>
+        
+        <div class="text-5xl font-mono font-bold text-white mb-8 tracking-widest relative z-10" id="farmTimerRemaining">00:00</div>
+        
+        <div class="grid grid-cols-2 gap-2 mb-4">
+             <button onclick="startFarmTimer('Crops', 10)" class="filter-chip justify-center border-emerald-500/30 text-emerald-300 hover:bg-emerald-900/30">🌾 Crops 10m</button>
+             <button onclick="startFarmTimer('Mobs', 20)" class="filter-chip justify-center border-red-500/30 text-red-300 hover:bg-red-900/30">⚔️ Mobs 20m</button>
+        </div>
+        
+        <div class="flex items-center gap-2 mb-6 text-xs">
+            <input id="farmCustomMinutes" type="number" class="w-16 bg-slate-900 border border-slate-700 rounded-lg p-2 text-center text-white" placeholder="Min">
+            <input id="farmCustomLabel" type="text" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2 text-white" placeholder="Label (e.g. Gold)">
+            <button onclick="startFarmTimerCustom()" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg">Go</button>
+        </div>
+
+        <button onclick="resetFarmTimer()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-3 rounded-xl text-xs font-bold transition-all">Reset Timer</button>
+    </div>
+  </div>
+
+  <div id="enchantModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('enchantModal')"></div>
     <div class="glass-morphism p-6 rounded-2xl w-full max-w-sm m-4 relative transform scale-95 opacity-0 transition-all modal-content">
-        <h3 class="text-lg font-bold text-red-400 mb-4 flex items-center gap-2"><i class="fa-brands fa-cloudversify"></i> Nether Calculator</h3>
-        <div class="grid grid-cols-2 gap-4 text-center">
-            <div><label class="text-xs text-slate-400 block mb-1">Overworld X</label><input type="number" id="netherInX" oninput="calcNether()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white text-center"></div>
-            <div><label class="text-xs text-slate-400 block mb-1">Overworld Z</label><input type="number" id="netherInZ" oninput="calcNether()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white text-center"></div>
-        </div>
-        <div class="my-4 flex justify-center text-slate-500"><i class="fa-solid fa-arrow-down"></i></div>
-        <div class="bg-red-900/20 border border-red-500/30 rounded p-3 text-center">
-            <div class="text-xs text-red-300 mb-1">Nether Coordinates</div>
-            <div class="text-xl font-mono font-bold text-white flex justify-center gap-4"><span>X: <span id="netherOutX">0</span></span><span>Z: <span id="netherOutZ">0</span></span></div>
+        <h3 class="text-xl font-bold text-blue-400 mb-4 flex items-center gap-2"><i class="fa-solid fa-book-skull"></i> XP Calculator</h3>
+        
+        <div class="space-y-4">
+            <div class="flex items-center gap-2">
+                <div class="flex-1">
+                    <label class="text-[10px] text-slate-400 uppercase block mb-1">Current Level</label>
+                    <input type="number" id="enchantFrom" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none">
+                </div>
+                <i class="fa-solid fa-arrow-right text-slate-600 mt-4"></i>
+                <div class="flex-1">
+                    <label class="text-[10px] text-slate-400 uppercase block mb-1">Target</label>
+                    <input type="number" id="enchantTo" placeholder="30" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none">
+                </div>
+            </div>
+            
+            <button onclick="calcEnchantXp()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all">Calculate</button>
+
+            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-700/50 text-center">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs text-slate-400">XP Required</span>
+                    <span class="text-lg font-bold text-white" id="enchantXpNeeded">0</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-xs text-slate-400">Est. Bottles</span>
+                    <span class="text-sm font-mono text-blue-300" id="enchantBottles">0</span>
+                </div>
+            </div>
         </div>
     </div>
   </div>
 
-  <div id="circleModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('circleModal')"></div>
-    <div class="glass-morphism p-6 rounded-2xl w-full max-w-lg m-4 relative transform scale-95 opacity-0 transition-all modal-content flex flex-col max-h-[85vh]">
-        <h3 class="text-lg font-bold text-cyan-400 mb-4 flex items-center gap-2"><i class="fa-regular fa-circle"></i> Circle Generator</h3>
-        <div class="flex items-center gap-2 mb-4">
-            <label class="text-sm text-slate-300">Radius:</label>
-            <input type="number" id="circleRadius" placeholder="e.g. 5" class="bg-slate-900 border border-slate-600 rounded p-2 text-white w-20 text-center" oninput="drawCircle(this.value)">
-            <span class="text-xs text-slate-500 ml-2">Max: 30</span>
+  <div id="filterSortModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('filterSortModal')"></div>
+    <div class="glass-morphism p-6 rounded-2xl w-full max-w-xs m-4 relative transform scale-95 opacity-0 transition-all modal-content">
+        <h3 class="text-lg font-bold text-pink-400 mb-4">Filter & Sort</h3>
+        
+        <div class="mb-4">
+            <label class="text-xs text-slate-400 uppercase block mb-2">Show Items</label>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="setItemFilter('all')" class="filter-chip flex-1 text-center" id="filter-all">All</button>
+                <button onclick="setItemFilter('todo')" class="filter-chip flex-1 text-center" id="filter-todo">To Do</button>
+                <button onclick="setItemFilter('done')" class="filter-chip flex-1 text-center" id="filter-done">Done</button>
+            </div>
         </div>
-        <div class="flex-1 bg-[#111] border border-slate-700 rounded overflow-auto p-4 flex items-center justify-center min-h-[300px]"><div id="circleCanvas" class="pixel-grid"></div></div>
+        
+        <div>
+            <label class="text-xs text-slate-400 uppercase block mb-2">Sort By</label>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="setSortMode('priority')" class="filter-chip flex-1 text-center" id="sort-priority">Priority</button>
+                <button onclick="setSortMode('name')" class="filter-chip flex-1 text-center" id="sort-name">Name</button>
+            </div>
+        </div>
     </div>
   </div>
 
   <div id="projectModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center">
     <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('projectModal')"></div>
     <div class="glass-morphism p-6 rounded-2xl w-full max-w-sm m-4 relative transform scale-95 opacity-0 transition-all modal-content">
-        <h3 class="text-lg font-bold text-white mb-4">New Project</h3>
-        <div class="space-y-4">
-            <input type="text" id="newProjectName" placeholder="Project Name" class="w-full bg-slate-900/50 border border-slate-600 rounded-lg p-3 text-white outline-none focus:border-[var(--accent-color)]">
-            <div class="grid grid-cols-3 gap-2">
-                <button onclick="selectCategory('farm')" id="cat-btn-farm" class="cat-btn p-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-emerald-900/30 transition-all flex flex-col items-center gap-2"><i class="fa-solid fa-wheat-awn text-emerald-400"></i><span class="text-xs">Farm</span></button>
-                <button onclick="selectCategory('build')" id="cat-btn-build" class="cat-btn p-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-blue-900/30 transition-all active-cat flex flex-col items-center gap-2"><i class="fa-solid fa-hammer text-blue-400"></i><span class="text-xs">Build</span></button>
-                <button onclick="selectCategory('redstone')" id="cat-btn-redstone" class="cat-btn p-3 rounded-lg border border-slate-700 bg-slate-800 hover:bg-red-900/30 transition-all flex flex-col items-center gap-2"><i class="fa-solid fa-microchip text-red-400"></i><span class="text-xs">Redstone</span></button>
+        <h3 class="text-lg font-bold text-white mb-4">Project Settings</h3>
+        <div class="space-y-3">
+            <div>
+                <label class="text-[10px] text-slate-400 uppercase">Project Name</label>
+                <input type="text" id="projectName" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-white outline-none focus:border-[var(--accent-color)] mt-1">
             </div>
-            <input type="hidden" id="selectedCat" value="build">
-            <button onclick="handleAddProject()" class="w-full bg-[var(--accent-color)] py-3 rounded-lg text-white font-bold shadow-lg hover:brightness-110 active:scale-95 transition-all">Create Project</button>
+             <div>
+                <label class="text-[10px] text-slate-400 uppercase">Server / World</label>
+                <input type="text" id="projectServer" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-white outline-none focus:border-[var(--accent-color)] mt-1">
+            </div>
+            <div>
+                 <label class="text-[10px] text-slate-400 uppercase mb-1 block">Category</label>
+                 <select id="selectedCat" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-white outline-none">
+                     <option value="build">Build</option>
+                     <option value="farm">Farm</option>
+                     <option value="redstone">Redstone</option>
+                 </select>
+            </div>
+            <div>
+                <label class="text-[10px] text-slate-400 uppercase">Notes / Seed</label>
+                <textarea id="projectNotes" rows="3" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-white outline-none mt-1 text-xs"></textarea>
+            </div>
+            <button onclick="handleAddProject()" class="w-full bg-[var(--accent-color)] py-3 rounded-xl text-white font-bold shadow-lg hover:brightness-110 active:scale-95 transition-all mt-2">Save Project</button>
         </div>
+    </div>
+  </div>
+
+  <div id="quantityModal" class="fixed inset-0 z-[80] hidden flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('quantityModal')"></div>
+    <div class="glass-morphism p-6 rounded-2xl w-full max-w-xs m-4 relative transform scale-95 opacity-0 transition-all modal-content text-center">
+        <h3 class="text-lg font-bold text-white mb-1">Edit Quantity</h3>
+        <p id="qtyItemName" class="text-xs text-slate-400 mb-6">Target: 0</p>
+        <input type="hidden" id="qtyItemId"><input type="hidden" id="qtyItemMax">
+        
+        <div class="flex items-center justify-center gap-4 mb-6">
+            <div class="flex flex-col items-center">
+                <label class="text-[9px] text-slate-500 font-bold mb-1">STACKS</label>
+                <input type="number" id="qtyStackInput" class="w-20 bg-slate-900 border border-slate-600 rounded-lg p-3 text-center text-white text-lg font-mono outline-none focus:border-[var(--accent-color)]" onclick="this.select()">
+            </div>
+            <div class="flex flex-col items-center">
+                <label class="text-[9px] text-slate-500 font-bold mb-1">UNITS</label>
+                <input type="number" id="qtyUnitInput" class="w-20 bg-slate-900 border border-slate-600 rounded-lg p-3 text-center text-white text-lg font-mono outline-none focus:border-[var(--accent-color)]" onclick="this.select()">
+            </div>
+        </div>
+        <button onclick="saveQuantity()" class="w-full bg-[var(--accent-color)] py-3 rounded-lg text-white font-bold shadow-lg hover:brightness-110 active:scale-95 transition-all">Update</button>
     </div>
   </div>
 
@@ -306,115 +427,176 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let state = { projects: [], currentId: null, globalItems: [], isFocusMode: false };
+    // Hybrid State
+    let state = { 
+        projects: [], 
+        currentId: null, 
+        globalItems: [], 
+        filterCat: 'all',
+        filterItem: 'all',
+        sortMode: 'priority'
+    };
+    
     let textures = { server: {}, custom: JSON.parse(localStorage.getItem("mcCustomTextures") || "{}") };
     let textureUploadId = null;
+    let farmTimer = { interval: null, endTime: null, label: '' };
 
+    // Fetch Global Items
     fetch("https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/pc/1.20/items.json")
       .then(r => r.json()).then(d => state.globalItems = d.map(i => ({ id: i.name, name: i.displayName }))).catch(() => {});
 
+    // --- FIREBASE LISTENERS ---
     onValue(ref(db, "projects"), (s) => {
       const data = s.val();
       state.projects = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })).reverse() : [];
-      renderDashboard();
-      if(state.currentId) renderItems();
+      renderProjects();
+      if(state.currentId) {
+          // Check if current project still exists
+          if(!state.projects.find(p => p.id === state.currentId)) {
+              state.currentId = null;
+              document.getElementById("itemsContainer").innerHTML = "";
+              document.getElementById("detailTitle").innerText = "Select a Project";
+          } else {
+              renderItems();
+          }
+      }
+      updateStats();
     });
     onValue(ref(db, "textures"), (s) => { textures.server = s.val() || {}; if(state.currentId) renderItems(); });
 
-    function renderDashboard() {
-        const container = document.getElementById("projectList");
+    // --- RENDER LOGIC (Hybrid) ---
+
+    window.renderProjects = () => {
+        const list = document.getElementById("projectList");
         const empty = document.getElementById("emptyState");
-        if (state.projects.length === 0) { container.innerHTML = ""; empty.classList.remove("hidden"); empty.classList.add("flex"); return; }
+        const search = document.getElementById("searchProjects").value.toLowerCase();
+        
+        let filtered = state.projects.filter(p => p.name.toLowerCase().includes(search));
+        if(state.filterCat !== 'all') filtered = filtered.filter(p => p.category === state.filterCat);
+
+        if (filtered.length === 0) { list.innerHTML = ""; empty.classList.remove("hidden"); empty.classList.add("flex"); return; }
         empty.classList.add("hidden"); empty.classList.remove("flex");
 
-        let totalItems = 0, totalDone = 0;
-        const html = state.projects.map(p => {
+        list.innerHTML = filtered.map(p => {
             const items = p.items ? Object.values(p.items) : [];
             const done = items.filter(i => i.completed).length;
             const percent = items.length ? Math.round((done / items.length) * 100) : 0;
-            totalItems += items.length; totalDone += done;
-            const theme = p.category === 'farm' ? 'emerald' : p.category === 'redstone' ? 'red' : 'blue';
-            const icon = p.category === 'farm' ? 'fa-wheat-awn' : p.category === 'redstone' ? 'fa-microchip' : 'fa-hammer';
             
-            return `<div onclick="openProject('${p.id}')" class="glass-morphism rounded-xl p-5 cursor-pointer card-3d group relative overflow-hidden">
-                <div class="absolute -right-10 -top-10 w-32 h-32 bg-${theme}-500/10 rounded-full blur-2xl group-hover:bg-${theme}-500/20 transition-all"></div>
-                <div class="flex justify-between items-start mb-4 relative z-10">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-lg bg-slate-800/80 border border-slate-700 flex items-center justify-center text-${theme}-400 shadow-inner"><i class="fa-solid ${icon}"></i></div>
-                        <div><h3 class="font-bold text-white text-base truncate max-w-[140px]">${p.name}</h3><div class="text-[10px] text-slate-400 uppercase tracking-wide font-semibold">${p.category}</div></div>
+            // Logic for active state
+            const isActive = p.id === state.currentId ? 'border-[var(--accent-color)] bg-slate-800/80 ring-1 ring-[var(--accent-color)]/50' : 'border-slate-700/50 bg-slate-900/40 hover:bg-slate-800/60 hover:border-slate-600';
+            const icon = p.category === 'farm' ? 'fa-wheat-awn' : p.category === 'redstone' ? 'fa-microchip' : 'fa-cube';
+            const theme = percent === 100 ? 'emerald' : 'indigo';
+
+            return `<div onclick="selectProject('${p.id}')" class="cursor-pointer rounded-xl p-3 transition-all duration-200 border group ${isActive}">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-8 h-8 rounded-lg bg-slate-950 flex items-center justify-center text-slate-400 group-hover:text-[var(--accent-color)] transition-colors shrink-0">
+                            <i class="fa-solid ${icon} text-xs"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <h3 class="font-bold text-slate-200 text-sm truncate group-hover:text-white transition-colors">${p.name}</h3>
+                            <div class="text-[10px] text-slate-500 truncate">${p.server || 'No Server'}</div>
+                        </div>
                     </div>
-                    <button onclick="deleteProject('${p.id}', event)" class="w-6 h-6 rounded flex items-center justify-center text-slate-600 hover:text-red-400 hover:bg-red-400/10 transition-colors opacity-0 group-hover:opacity-100"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                    <div class="text-right shrink-0">
+                        <span class="text-[10px] font-mono text-slate-400 block">${percent}%</span>
+                        <button onclick="deleteProject('${p.id}', event)" class="text-slate-600 hover:text-red-400 text-[10px] p-1"><i class="fa-solid fa-trash"></i></button>
+                    </div>
                 </div>
-                <div class="space-y-1 relative z-10">
-                    <div class="flex justify-between text-xs text-slate-300"><span>Progress</span><span class="${percent === 100 ? 'text-green-400 font-bold' : ''}">${percent}%</span></div>
-                    <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-${theme}-500 to-${theme}-400 transition-all duration-1000 ease-out" style="width: ${percent}%"></div></div>
+                <div class="h-1 w-full bg-slate-950 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-[var(--accent-color)] to-fuchsia-400 transition-all duration-500" style="width: ${percent}%"></div>
                 </div>
             </div>`;
         }).join('');
-        container.innerHTML = html;
-        document.getElementById("globalProgress").innerText = totalItems ? Math.round((totalDone/totalItems)*100) + "% Done" : "0% Done";
-    }
+    };
+
+    window.selectProject = (id) => {
+        state.currentId = id;
+        renderProjects(); // to update active state
+        renderItems();
+        
+        // Mobile UX: Scroll to right panel
+        if(window.innerWidth < 768) {
+            document.getElementById("itemsContainerWrapper").scrollIntoView({behavior: 'smooth'});
+        }
+    };
 
     window.renderItems = () => {
         const p = state.projects.find(x => x.id === state.currentId);
         if(!p) return;
+
+        // Update Detail Header
         document.getElementById("detailTitle").innerText = p.name;
         document.getElementById("detailCat").innerText = p.category;
-        document.getElementById("projectNoteInput").value = p.notes || "";
+        document.getElementById("detailServer").innerText = p.server || "No Server Configured";
         document.getElementById("itemCountDisplay").innerText = (p.items ? Object.keys(p.items).length : 0) + " Items";
-        
-        const container = document.getElementById("itemsContainer");
-        const items = p.items ? Object.keys(p.items).map(k => ({id: k, ...p.items[k]})) : [];
-        items.sort((a,b) => (a.priority === 'high' && b.priority !== 'high') ? -1 : 0);
+        document.getElementById("newItemName").focus(); // Focus input for quick adding
 
-        const filter = document.getElementById("searchItems").value.toLowerCase();
-        container.innerHTML = items.filter(i => i.name.toLowerCase().includes(filter)).map(item => {
+        // Setup Project Modal Values
+        document.getElementById("projectName").value = p.name;
+        document.getElementById("projectServer").value = p.server || "";
+        document.getElementById("selectedCat").value = p.category;
+        document.getElementById("projectNotes").value = p.notes || "";
+
+        const container = document.getElementById("itemsContainer");
+        let items = p.items ? Object.keys(p.items).map(k => ({id: k, ...p.items[k]})) : [];
+        
+        // Sort & Filter
+        const search = document.getElementById("searchItems").value.toLowerCase();
+        items = items.filter(i => i.name.toLowerCase().includes(search));
+        
+        if(state.filterItem === 'todo') items = items.filter(i => !i.completed);
+        if(state.filterItem === 'done') items = items.filter(i => i.completed);
+
+        if(state.sortMode === 'priority') items.sort((a,b) => (a.priority==='high' && b.priority!=='high') ? -1 : 0);
+        if(state.sortMode === 'name') items.sort((a,b) => a.name.localeCompare(b.name));
+
+        container.innerHTML = items.map(item => {
             const tex = textures.server[item.itemId] || textures.custom[item.itemId] || `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${item.itemId}.png`;
             const max = item.amount || 1;
             const current = item.current || 0;
             const percent = Math.min(100, Math.round((current/max)*100));
             
-            // Revert to Stepper UI but with Clickable Middle Text
-            return `<div class="group relative flex items-center gap-4 bg-slate-800/40 border border-slate-700/50 hover:border-slate-500 rounded-xl p-3 transition-all ${item.completed ? 'opacity-50 grayscale-[0.5]' : ''} ${item.priority==='high' ? 'border-l-4 border-l-red-500 bg-red-900/10' : ''}">
-                <div class="flex items-center gap-3 pl-1">
+            return `<div class="group relative flex items-center gap-3 bg-slate-900/40 border border-slate-700/50 hover:bg-slate-800/60 hover:border-slate-600 rounded-xl p-3 transition-all card-3d ${item.completed ? 'opacity-50 grayscale-[0.5]' : ''} ${item.priority==='high' ? 'border-l-2 border-l-red-500' : ''}">
+                <div class="flex items-center gap-3">
                     <input type="checkbox" class="mc-checkbox" ${item.completed ? 'checked' : ''} onchange="toggleItem('${item.id}', this.checked, ${max})">
-                    <div class="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center border border-slate-700 relative cursor-pointer hover:border-[var(--accent-color)]" onclick="uploadTex('${item.itemId}')">
-                        <img src="${tex}" class="w-7 h-7 pixel-art object-contain" onerror="this.src='https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/barrier.png'">
+                    <div class="w-10 h-10 bg-slate-950 rounded-lg flex items-center justify-center border border-slate-800 relative cursor-pointer hover:border-[var(--accent-color)] transition-colors group/icon" onclick="uploadTex('${item.itemId}')">
+                        <img src="${tex}" loading="lazy" class="w-6 h-6 pixel-art object-contain" onerror="this.src='https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/barrier.png'">
+                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover/icon:opacity-100 flex items-center justify-center rounded-lg transition-opacity"><i class="fa-solid fa-camera text-[8px] text-white"></i></div>
                     </div>
-                </div>
-                <div class="flex-1 min-w-0 flex flex-col justify-center">
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="font-medium text-slate-200 truncate ${item.completed ? 'line-through text-slate-500' : ''}">${item.name}</span>
-                        ${item.priority === 'high' ? '<i class="fa-solid fa-fire text-red-500 text-xs animate-pulse"></i>' : ''}
-                        <a href="https://minecraft.wiki/w/${item.name.replace(/\s+/g,'_')}" target="_blank" class="text-slate-600 hover:text-white ml-1 opacity-0 group-hover:opacity-100 transition-opacity" title="Open Wiki"><i class="fa-solid fa-book text-[10px]"></i></a>
-                    </div>
-                    <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-700/50 relative">
-                        <div class="h-full bg-emerald-500 transition-all duration-300" style="width: ${percent}%"></div>
-                    </div>
-                    <div class="flex justify-between mt-1"><span class="text-[9px] text-slate-400">Target: ${max}</span><span class="text-[9px] text-slate-400">${percent}%</span></div>
-                </div>
-                
-                <div class="flex items-center bg-slate-950 rounded-lg border border-slate-700 p-0.5 select-none shadow-inner">
-                    <button class="w-8 h-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 rounded stepper-btn transition-colors" onmousedown="adjustAmount('${item.id}', -1, ${current}, ${max})"><i class="fa-solid fa-minus text-xs"></i></button>
-                    
-                    <div class="w-16 text-center cursor-pointer hover:bg-slate-800 rounded py-0.5 transition-colors" onclick="openQuantityModal('${item.id}', '${item.name}', ${current}, ${max})">
-                        <div class="text-xs font-mono font-bold ${current >= max ? 'text-green-400' : 'text-slate-200'}">${current}</div>
-                        <div class="text-[9px] text-slate-500">/${max}</div>
-                    </div>
-
-                    <button class="w-8 h-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 rounded stepper-btn transition-colors" onmousedown="adjustAmount('${item.id}', 1, ${current}, ${max})"><i class="fa-solid fa-plus text-xs"></i></button>
                 </div>
 
-                <button onclick="delItem('${item.id}')" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-500/20 text-slate-600 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100"><i class="fa-solid fa-xmark"></i></button>
+                <div class="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
+                    <div class="flex items-center gap-2">
+                        <span class="font-medium text-slate-200 text-sm truncate ${item.completed ? 'line-through text-slate-500' : ''}">${item.name}</span>
+                        ${item.priority === 'high' ? '<i class="fa-solid fa-fire text-red-500 text-[10px] animate-pulse"></i>' : ''}
+                        <a href="https://minecraft.wiki/w/${item.name.replace(/\s+/g,'_')}" target="_blank" class="text-slate-600 hover:text-[var(--accent-color)] opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-book text-[10px]"></i></a>
+                    </div>
+                    <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-800">
+                        <div class="h-full progress-gradient transition-all duration-300" style="width: ${percent}%"></div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 pl-2">
+                    <div class="flex items-center bg-slate-950 rounded-lg border border-slate-800 p-0.5 shadow-inner">
+                        <button class="stepper-btn w-6 h-6 rounded text-[10px]" onmousedown="adjustAmount('${item.id}', -1, ${current}, ${max})"><i class="fa-solid fa-minus"></i></button>
+                        <div class="w-12 text-center cursor-pointer hover:text-white transition-colors" onclick="openQuantityModal('${item.id}', '${item.name}', ${current}, ${max})">
+                            <div class="text-xs font-mono font-bold ${current >= max ? 'text-emerald-400' : 'text-slate-300'}">${current}</div>
+                        </div>
+                        <button class="stepper-btn w-6 h-6 rounded text-[10px]" onmousedown="adjustAmount('${item.id}', 1, ${current}, ${max})"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <button onclick="delItem('${item.id}')" class="w-6 h-6 flex items-center justify-center rounded hover:bg-red-500/20 text-slate-600 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100"><i class="fa-solid fa-xmark text-xs"></i></button>
+                </div>
             </div>`;
         }).join('');
     };
 
-    // --- LOGIC ---
+    // --- LOGIC FUNCTIONS ---
+
     window.updateAddTotal = () => {
         const s = parseInt(document.getElementById("newStackAmt").value) || 0;
         const u = parseInt(document.getElementById("newSingleAmt").value) || 0;
-        document.getElementById("newTotalDisplay").innerText = (s * 64) + u;
+        // Just for visual feedback if needed, currently no display for total in the compact form
     };
 
     window.handleAddItem = () => {
@@ -424,31 +606,187 @@
         const total = (s * 64) + u;
         const finalAmount = total > 0 ? total : 64; 
         
-        if (!name || !state.currentId) return;
+        if (!name || !state.currentId) {
+            if(!state.currentId) showAchievement("Select a project first!", "red");
+            return;
+        }
+
         push(ref(db, `projects/${state.currentId}/items`), {
             name: name, itemId: document.getElementById("newItemId").value || name.toLowerCase().replace(/\s+/g, '_'),
-            amount: finalAmount, current: 0, completed: false,
-            priority: document.getElementById("newItemPriority").checked ? "high" : "normal"
+            amount: finalAmount, current: 0, completed: false, priority: "normal"
         });
+        
+        // Reset Form
         document.getElementById("newItemName").value = "";
+        document.getElementById("newItemName").focus();
         document.getElementById("newStackAmt").value = "";
         document.getElementById("newSingleAmt").value = "";
-        document.getElementById("newTotalDisplay").innerText = "0";
         document.getElementById("suggestionBox").classList.add("hidden");
-        setTimeout(() => { const sa = document.getElementById("itemsScrollArea"); sa.scrollTo({ top: sa.scrollHeight, behavior: 'smooth' }); }, 200);
     };
 
-    // --- POPUP LOGIC ---
-    window.openQuantityModal = (id, name, current, max) => {
-        const stacks = Math.floor(current / 64);
-        const units = current % 64;
+    window.handleAddProject = () => {
+        const id = state.currentId; 
+        const name = document.getElementById("projectName").value;
+        const cat = document.getElementById("selectedCat").value;
+        const server = document.getElementById("projectServer").value;
+        const notes = document.getElementById("projectNotes").value;
+        
+        if(id) {
+            // Update Existing
+            update(ref(db, `projects/${id}`), { name, category: cat, server, notes });
+            showAchievement("Project Updated!", "gold");
+        } else {
+            // Create New
+            if(name) {
+                const newRef = push(ref(db,"projects"), { name, category: cat, server, notes, items: {} });
+                state.currentId = newRef.key;
+                showAchievement("Project Created!", "gold");
+            }
+        }
+        closeModal("projectModal");
+    };
 
+    // --- MODAL & FEATURE LOGIC ---
+
+    // Stats
+    window.updateStats = () => {
+        let pCount = state.projects.length;
+        let tItems = 0;
+        let cItems = 0;
+        state.projects.forEach(p => {
+            if(p.items) {
+                const vals = Object.values(p.items);
+                tItems += vals.length;
+                cItems += vals.filter(x => x.completed).length;
+            }
+        });
+        const percent = tItems > 0 ? Math.round((cItems/tItems)*100) : 0;
+        
+        if(document.getElementById("statsTotalProjects")) {
+            document.getElementById("statsTotalProjects").innerText = pCount;
+            document.getElementById("statsTotalItems").innerText = tItems;
+            document.getElementById("statsCompletedItems").innerText = cItems;
+            document.getElementById("statsCompletionRate").innerText = percent + "%";
+            
+            // Top Projects Logic
+            const top = [...state.projects]
+                .map(p => {
+                    const i = Object.values(p.items||{});
+                    const d = i.filter(x=>x.completed).length;
+                    return {name: p.name, pct: i.length ? Math.round((d/i.length)*100) : 0}
+                })
+                .sort((a,b) => b.pct - a.pct)
+                .slice(0,3);
+            
+            document.getElementById("statsTopProjects").innerHTML = top.map(p => 
+                `<div class="flex justify-between text-xs text-slate-300 border-b border-white/5 py-1 last:border-0"><span>${p.name}</span><span class="font-mono text-[var(--accent-color)]">${p.pct}%</span></div>`
+            ).join('');
+        }
+    };
+
+    // Timer
+    window.startFarmTimer = (label, mins) => {
+        clearInterval(farmTimer.interval);
+        const ms = mins * 60 * 1000;
+        farmTimer.endTime = Date.now() + ms;
+        farmTimer.label = label;
+        
+        farmTimer.interval = setInterval(() => {
+            const diff = farmTimer.endTime - Date.now();
+            if(diff <= 0) {
+                clearInterval(farmTimer.interval);
+                document.getElementById("farmTimerRemaining").innerText = "00:00";
+                showAchievement(`${label} Timer Finished!`, "gold");
+                new Audio('https://assets.mcasset.cloud/1.21/assets/minecraft/sounds/random/orb.ogg').play().catch(()=>{});
+            } else {
+                const m = Math.floor(diff / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+                document.getElementById("farmTimerRemaining").innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            }
+        }, 1000);
+        showAchievement(`Timer set for ${mins}m`, "blue");
+    };
+    window.startFarmTimerCustom = () => {
+        const m = parseInt(document.getElementById("farmCustomMinutes").value) || 0;
+        const l = document.getElementById("farmCustomLabel").value || "Custom";
+        if(m > 0) startFarmTimer(l, m);
+    };
+    window.resetFarmTimer = () => { clearInterval(farmTimer.interval); document.getElementById("farmTimerRemaining").innerText = "00:00"; };
+
+    // Enchant
+    window.calcEnchantXp = () => {
+        const from = parseInt(document.getElementById("enchantFrom").value) || 0;
+        const to = parseInt(document.getElementById("enchantTo").value) || 0;
+        const getXP = (lvl) => {
+            if(lvl <= 16) return lvl * lvl + 6 * lvl;
+            if(lvl <= 31) return 2.5 * lvl * lvl - 40.5 * lvl + 360;
+            return 4.5 * lvl * lvl - 162.5 * lvl + 2220;
+        };
+        const xp = Math.max(0, Math.round(getXP(to) - getXP(from)));
+        document.getElementById("enchantXpNeeded").innerText = xp.toLocaleString();
+        document.getElementById("enchantBottles").innerText = "~" + Math.ceil(xp / 7);
+    };
+
+    // Biome
+    window.changeBiome = (b) => {
+        const r = document.documentElement;
+        if(b === 'nether') {
+            r.style.setProperty('--bg-gradient-start', '#450a0a');
+            r.style.setProperty('--bg-gradient-end', '#1a0505');
+            r.style.setProperty('--accent-color', '#ef4444');
+            showAchievement("Nether Theme Loaded", "red");
+        } else if (b === 'end') {
+            r.style.setProperty('--bg-gradient-start', '#2e1065');
+            r.style.setProperty('--bg-gradient-end', '#0f0518');
+            r.style.setProperty('--accent-color', '#d946ef');
+            showAchievement("End Theme Loaded", "purple");
+        } else {
+            r.style.setProperty('--bg-gradient-start', '#0f172a');
+            r.style.setProperty('--bg-gradient-end', '#020617');
+            r.style.setProperty('--accent-color', '#8b5cf6');
+            showAchievement("Overworld Theme Loaded", "blue");
+        }
+    };
+
+    // Filters
+    window.setProjectFilter = (c) => { 
+        state.filterCat = c; 
+        document.querySelectorAll("#projectList .filter-chip").forEach(b => b.classList.remove("active"));
+        if(document.getElementById("cat-"+c)) document.getElementById("cat-"+c).classList.add("active"); // Fixed logic
+        renderProjects(); 
+    };
+    window.setItemFilter = (f) => { 
+        state.filterItem = f; 
+        document.querySelectorAll("#filterSortModal .filter-chip").forEach(b => b.classList.remove("active"));
+        document.getElementById("filter-"+f).classList.add("active");
+        renderItems(); 
+    };
+    window.setSortMode = (m) => {
+        state.sortMode = m;
+        document.querySelectorAll("#filterSortModal .filter-chip").forEach(b => b.classList.remove("active"));
+        document.getElementById("sort-"+m).classList.add("active");
+        renderItems();
+    };
+
+    // --- STANDARD UTILS ---
+    window.adjustAmount = (id, d, c, m) => { 
+        const n = Math.max(0, Math.min(m, c+d)); 
+        update(ref(db, `projects/${state.currentId}/items/${id}`), {current:n, completed:n>=m}); 
+        if(n>=m && d>0) showAchievement("Item Completed!", "emerald"); 
+    };
+    window.toggleItem = (id, c, m) => { 
+        update(ref(db, `projects/${state.currentId}/items/${id}`), {completed:c, current:c?m:0}); 
+        if(c){ confetti({particleCount:40, spread:70, origin:{y:0.8}, colors: ['#a855f7', '#ec4899']}); showAchievement("Task Done!", "gold"); } 
+    };
+    window.delItem=(id)=>{if(confirm("Delete item?"))remove(ref(db,`projects/${state.currentId}/items/${id}`))}; 
+    window.deleteProject=(id,e)=>{e.stopPropagation();if(confirm("Delete Project?"))remove(ref(db,`projects/${id}`)); if(state.currentId===id){state.currentId=null; document.getElementById("itemsContainer").innerHTML="";}};
+
+    window.openQuantityModal = (id, name, current, max) => {
         document.getElementById("qtyItemId").value = id;
         document.getElementById("qtyItemMax").value = max;
-        document.getElementById("qtyItemName").innerText = `${name} (Target: ${max})`;
-        document.getElementById("qtyStackInput").value = stacks;
-        document.getElementById("qtyUnitInput").value = units;
-
+        document.getElementById("qtyItemName").innerText = `${name} (${current}/${max})`;
+        document.getElementById("qtyStackInput").value = Math.floor(current / 64);
+        document.getElementById("qtyUnitInput").value = current % 64;
         openModal("quantityModal");
     };
 
@@ -457,82 +795,64 @@
         const max = parseInt(document.getElementById("qtyItemMax").value) || 1;
         const s = parseInt(document.getElementById("qtyStackInput").value) || 0;
         const u = parseInt(document.getElementById("qtyUnitInput").value) || 0;
-        
         const total = (s * 64) + u;
         const finalVal = Math.min(max, Math.max(0, total));
-        const isComp = finalVal >= max;
-
-        update(ref(db, `projects/${state.currentId}/items/${id}`), {
-            current: finalVal,
-            completed: isComp
-        });
-
-        if(isComp) showAchievement("Item Completed!", "emerald");
+        update(ref(db, `projects/${state.currentId}/items/${id}`), { current: finalVal, completed: finalVal >= max });
+        if(finalVal >= max) showAchievement("Updated!", "emerald");
         closeModal("quantityModal");
     };
 
-    // --- OTHER FEATURES ---
-    window.calcNether = () => {
-        const x = parseInt(document.getElementById("netherInX").value) || 0;
-        const z = parseInt(document.getElementById("netherInZ").value) || 0;
-        document.getElementById("netherOutX").innerText = Math.round(x / 8);
-        document.getElementById("netherOutZ").innerText = Math.round(z / 8);
+    window.searchGlobalItems=(v)=>{ 
+        const b = document.getElementById("suggestionBox"); 
+        if(v.length<2){b.classList.add("hidden");return;} 
+        const m = state.globalItems.filter(i=>i.name.toLowerCase().includes(v.toLowerCase())).slice(0,10); 
+        if(m.length){
+            b.innerHTML=m.map(i=>`<div class="flex items-center gap-3 p-2.5 hover:bg-slate-700/50 cursor-pointer text-xs text-slate-300 transition-colors border-b border-slate-700/50 last:border-0" onclick="document.getElementById('newItemName').value='${i.name}';document.getElementById('newItemId').value='${i.id}';this.parentElement.classList.add('hidden');document.getElementById('newStackAmt').focus()"><img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${i.id}.png" class="w-5 h-5 pixel-art" loading="lazy"><span class="font-medium">${i.name}</span></div>`).join('');
+            b.classList.remove("hidden");
+        } else b.classList.add("hidden"); 
     };
 
-    window.drawCircle = (r) => {
-        const radius = parseInt(r);
-        if(!radius || radius <= 0 || radius > 30) return;
-        const grid = document.getElementById("circleCanvas");
-        const size = radius * 2 + 1;
-        grid.style.gridTemplateColumns = `repeat(${size}, 10px)`;
-        grid.innerHTML = "";
-        for(let y = -radius; y <= radius; y++) {
-            for(let x = -radius; x <= radius; x++) {
-                const dist = Math.sqrt(x*x + y*y);
-                const cell = document.createElement("div");
-                cell.className = "pixel-cell";
-                if(dist >= radius - 0.5 && dist <= radius + 0.5) cell.classList.add("active");
-                grid.appendChild(cell);
-            }
-        }
-    };
-
+    window.uploadTex=(id)=>{ textureUploadId=id; document.getElementById("textureInput").click(); }; 
+    window.handleTextureUpload=(el)=>{ const f=el.files[0]; if(f){ const r=new FileReader(); r.onload=(e)=>set(ref(db,"textures/"+textureUploadId),e.target.result); r.readAsDataURL(f); } el.value=''; };
     window.backupData = () => {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.projects));
-        const anchor = document.createElement('a');
-        anchor.setAttribute("href", dataStr);
-        anchor.setAttribute("download", "mc_manager_backup.json");
-        document.body.appendChild(anchor); anchor.click(); anchor.remove();
+        const anchor = document.createElement('a'); anchor.setAttribute("href", dataStr); anchor.setAttribute("download", "mc_backup.json"); document.body.appendChild(anchor); anchor.click(); anchor.remove();
         showAchievement("Backup Downloaded!", "blue");
     };
-
     window.restoreData = (el) => {
-        const f = el.files[0];
-        if(!f) return;
+        const f = el.files[0]; if(!f) return;
         const r = new FileReader();
-        r.onload = (e) => {
-            const data = JSON.parse(e.target.result);
-            if(confirm("Restore data?")) { set(ref(db, "projects"), data); showAchievement("Data Restored!", "emerald"); }
-        };
-        r.readAsText(f);
-        el.value = '';
+        r.onload = (e) => { try { set(ref(db, "projects"), JSON.parse(e.target.result)); showAchievement("Data Restored!", "emerald"); } catch(err) { alert("Invalid file"); } };
+        r.readAsText(f); el.value = '';
     };
 
-    // Standard funcs
-    window.openProject = (id) => { state.currentId = id; renderItems(); const m=document.getElementById("detailModal"); m.classList.remove("hidden"); setTimeout(() => { m.querySelector(".modal-content").classList.remove("scale-95","opacity-0"); m.querySelector(".modal-content").classList.add("scale-100","opacity-100"); }, 10); };
-    window.closeModal = (id) => { const m=document.getElementById(id); m.querySelector(".modal-content").classList.remove("scale-100","opacity-100"); m.querySelector(".modal-content").classList.add("scale-95","opacity-0"); setTimeout(()=>m.classList.add("hidden"),300); if(id==='detailModal')state.currentId=null; };
-    window.adjustAmount = (id, d, c, m) => { const n=Math.max(0, Math.min(m, c+d)); update(ref(db, `projects/${state.currentId}/items/${id}`), {current:n, completed:n>=m}); if(n>=m && d>0) showAchievement("Item Completed!", "emerald"); };
-    window.toggleItem = (id, c, m) => { update(ref(db, `projects/${state.currentId}/items/${id}`), {completed:c, current:c?m:0}); if(c){ confetti({particleCount:50,spread:60,origin:{y:0.7}}); showAchievement("Task Done!", "gold"); } };
-    window.copyToClipboard = () => { const p=state.projects.find(x=>x.id===state.currentId); if(!p)return; const items=Object.values(p.items||{}); const todo=items.filter(i=>!i.completed); let t=`**${p.name}**\nTo Collect:\n`+todo.map(i=>`• ${i.name}: ${i.current}/${i.amount}`).join('\n'); navigator.clipboard.writeText(t); showAchievement("Copied!", "blue"); };
-    window.toggleFocusMode = () => { state.isFocusMode=!state.isFocusMode; const m=document.getElementById("detailModal").querySelector(".modal-content"); if(state.isFocusMode){ m.classList.add("fixed","inset-0","z-[100]","rounded-none"); m.classList.remove("rounded-2xl","border"); document.getElementById("focusBtn").innerHTML='<i class="fa-solid fa-compress"></i>'; }else{ m.classList.remove("fixed","inset-0","z-[100]","rounded-none"); m.classList.add("rounded-2xl","border"); document.getElementById("focusBtn").innerHTML='<i class="fa-solid fa-expand"></i>'; } };
-    window.showAchievement = (t,c) => { const d=document.createElement("div"); d.className="achievement-toast"; let i="fa-trophy"; if(c==='emerald')i="fa-check"; if(c==='blue')i="fa-clipboard"; d.innerHTML=`<div class="w-8 h-8 bg-slate-800 border-2 border-white flex items-center justify-center"><i class="fa-solid ${i} text-${c}-400"></i></div><div><span class="text-xs text-yellow-200 block">Achievement Get!</span><span>${t}</span></div>`; document.getElementById("toast-container").appendChild(d); setTimeout(()=>d.remove(),4000); };
-    window.delItem=(id)=>{if(confirm("Delete item?"))remove(ref(db,`projects/${state.currentId}/items/${id}`))}; window.deleteProject=(id,e)=>{e.stopPropagation();if(confirm("Delete Project?"))remove(ref(db,`projects/${id}`))}; window.saveNote=()=>update(ref(db,`projects/${state.currentId}`),{notes:document.getElementById("projectNoteInput").value});
-    window.searchGlobalItems=(v)=>{ const b=document.getElementById("suggestionBox"); if(v.length<2){b.classList.add("hidden");return;} const m=state.globalItems.filter(i=>i.name.toLowerCase().includes(v.toLowerCase())).slice(0,10); if(m.length){b.innerHTML=m.map(i=>`<div class="flex items-center gap-2 p-2 hover:bg-slate-700 cursor-pointer text-sm text-slate-300" onclick="document.getElementById('newItemName').value='${i.name}';document.getElementById('newItemId').value='${i.id}';this.parentElement.classList.add('hidden')"><img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${i.id}.png" class="w-5 h-5 pixel-art">${i.name}</div>`).join('');b.classList.remove("hidden");}else b.classList.add("hidden"); };
-    window.selectCategory=(c)=>{ document.querySelectorAll(".cat-btn").forEach(b=>b.classList.remove("border-[var(--accent-color)]","bg-slate-700")); document.getElementById("cat-btn-"+c).classList.add("border-[var(--accent-color)]","bg-slate-700"); document.getElementById("selectedCat").value=c; };
-    window.handleAddProject=()=>{ const n=document.getElementById("newProjectName").value; if(n){ push(ref(db,"projects"),{name:n,category:document.getElementById("selectedCat").value,items:{}}); closeModal("projectModal"); document.getElementById("newProjectName").value=""; showAchievement("New Project!", "gold"); } };
-    window.changeBiome=(b)=>{ const bg=document.getElementById("bg-layer"); const r=document.documentElement; if(b==='nether'){bg.style.backgroundImage='url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/netherrack.png")';r.style.setProperty('--accent-color','#ef4444');}else if(b==='end'){bg.style.backgroundImage='url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/end_stone.png")';r.style.setProperty('--accent-color','#d946ef');}else{bg.style.backgroundImage='url("https://assets.mcasset.cloud/1.21/assets/minecraft/textures/block/stone.png")';r.style.setProperty('--accent-color','#8b5cf6');} };
-    window.uploadTex=(id)=>{ textureUploadId=id; document.getElementById("textureInput").click(); }; window.handleTextureUpload=(el)=>{ const f=el.files[0]; if(f){ const r=new FileReader(); r.onload=(e)=>set(ref(db,"textures/"+textureUploadId),e.target.result); r.readAsDataURL(f); } el.value=''; }; window.filterItems=(v)=>renderItems();
-    window.openModal=(id)=>{ const m=document.getElementById(id); m.classList.remove("hidden"); setTimeout(()=> {m.querySelector(".modal-content").classList.remove("scale-95","opacity-0"); m.querySelector(".modal-content").classList.add("scale-100","opacity-100");},10); };
+    // UI Helpers
+    window.openModal = (id) => { 
+        if(id==='projectModal' && !state.currentId && !document.getElementById("projectName").value) {
+            // Clear inputs if opening for new project
+            document.getElementById("projectName").value = "";
+            document.getElementById("projectServer").value = "";
+            document.getElementById("projectNotes").value = "";
+        }
+        const m = document.getElementById(id); m.classList.remove("hidden"); 
+        requestAnimationFrame(() => { m.querySelector(".modal-content").classList.remove("scale-95","opacity-0"); m.querySelector(".modal-content").classList.add("scale-100","opacity-100"); });
+    };
+    window.closeModal = (id) => { 
+        const m = document.getElementById(id); 
+        m.querySelector(".modal-content").classList.remove("scale-100","opacity-100"); m.querySelector(".modal-content").classList.add("scale-95","opacity-0"); 
+        setTimeout(()=>m.classList.add("hidden"), 300); 
+    };
+    window.showAchievement = (t,c) => { 
+        const d = document.createElement("div"); d.className="achievement-toast"; 
+        let i="fa-trophy"; let cl="yellow";
+        if(c==='emerald'){i="fa-check-circle"; cl="emerald";} 
+        if(c==='blue'){i="fa-floppy-disk"; cl="blue";}
+        if(c==='red'){i="fa-fire"; cl="red";}
+        d.style.borderLeftColor = `var(--accent-color)`;
+        d.innerHTML=`<div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-${cl}-400"><i class="fa-solid ${i}"></i></div><div><span class="text-[10px] text-slate-400 font-bold uppercase block mb-0.5">Notification</span><span class="font-bold text-sm text-white">${t}</span></div>`; 
+        document.getElementById("toast-container").appendChild(d); 
+        setTimeout(()=>d.remove(), 4000); 
+    };
   </script>
 </body>
 </html>
