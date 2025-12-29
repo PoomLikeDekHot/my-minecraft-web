@@ -1,858 +1,506 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Minecraft Manager: Ultimate Hybrid</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ["Kanit", "sans-serif"], pixel: ['"Press Start 2P"', 'cursive'] },
-          colors: { 
-            mcDark: "#020617", 
-            mcPanel: "rgba(15, 23, 42, 0.75)",
-            accent: "var(--accent-color)"
-          },
-          animation: {
-            'float': 'float 6s ease-in-out infinite',
-            'popup': 'popup 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
-            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-          },
-          keyframes: {
-            float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-6px)' } },
-            popup: { '0%': { opacity: 0, transform: 'scale(0.9) translateY(8px)' }, '100%': { opacity: 1, transform: 'scale(1) translateY(0)' } }
-          },
-          boxShadow: {
-            "mc-soft": "0 18px 45px rgba(2,6,23,0.6)",
-          }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAIKA MANAGEMENT SYSTEM | PREMIUM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --bg-color: #050505; 
+            --accent-white: #ffffff; 
+            --grid-color: rgba(255, 255, 255, 0.03); 
+            --neon-blue: #3b82f6;
         }
-      }
-    };
-  </script>
+        
+        body { 
+            font-family: 'Space Grotesk', 'Prompt', sans-serif; 
+            background-color: var(--bg-color); 
+            color: #a1a1aa; 
+            min-height: 100vh;
+            background-image: linear-gradient(var(--grid-color) 1px, transparent 1px), linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 40px 40px;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
 
-  <style>
-    :root { 
-        --accent-color: #8b5cf6; 
-        --bg-gradient-start: #0f172a;
-        --bg-gradient-end: #020617;
-        --glass-border: rgba(255, 255, 255, 0.08);
-    }
-    
-    body { background-color: #050505; color: #e2e8f0; overflow-x: hidden; cursor: default; }
+        /* --- UI Improvements --- */
+        .btn-pill { 
+            background: var(--accent-white); 
+            color: black; 
+            border-radius: 9999px; 
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            font-weight: 700; 
+        }
+        .btn-pill:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 0 20px rgba(255,255,255,0.2); 
+            opacity: 0.9; 
+        }
+        
+        .input-dark { 
+            background: rgba(255, 255, 255, 0.02); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            color: white; 
+            border-radius: 16px; 
+            padding: 14px 20px; 
+            outline: none; 
+            transition: all 0.3s ease; 
+            font-size: 0.95rem;
+        }
+        .input-dark:focus { 
+            border-color: var(--neon-blue); 
+            background: rgba(255,255,255,0.05);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.1);
+        }
 
-    /* Optimized Background */
-    #bg-layer {
-      position: fixed; inset: 0; z-index: -2;
-      background: radial-gradient(circle at top, var(--accent-color) 0%, var(--bg-gradient-start) 45%, var(--bg-gradient-end) 100%);
-      opacity: 0.6; transition: all 1s ease;
-    }
-    #bg-grid {
-        position: fixed; inset: 0; z-index: -1;
-        background-image: 
-            linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-        background-size: 50px 50px;
-        mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
-        pointer-events: none;
-    }
+        select.input-dark {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.2em;
+        }
+        select.input-dark option { background-color: #0a0a0a; color: white; padding: 10px; }
 
-    /* Modern Scrollbar */
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
-    ::-webkit-scrollbar-thumb:hover { background-color: rgba(255,255,255,0.2); }
+        /* --- New Transition Logic --- */
+        .view-content { 
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); 
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+        .view-hidden { 
+            display: none; 
+            opacity: 0; 
+            transform: translateX(30px) scale(0.98); 
+        }
+        
+        /* Nav Link Glow */
+        .nav-link { position: relative; }
+        .nav-link::after {
+            content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px;
+            background: var(--neon-blue); transition: 0.3s ease;
+        }
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+        .nav-link.active { color: white; }
 
-    .glass-morphism {
-      background: rgba(15, 23, 42, 0.65); 
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border); 
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-    }
+        #custom-modal-container {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(8px); z-index: 10000;
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: #0d0d0d; border: 1px solid rgba(255,255,255,0.1);
+            padding: 2.5rem; border-radius: 32px; width: 90%; max-width: 440px;
+        }
 
-    .pixel-art { image-rendering: pixelated; will-change: transform; }
+        .stat-card {
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 20px; padding: 1.75rem; transition: 0.3s;
+        }
+        .stat-card:hover { border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); }
 
-    /* Custom Checkbox */
-    .mc-checkbox { appearance: none; width: 20px; height: 20px; border: 2px solid #475569; border-radius: 6px; display: grid; place-content: center; transition: 0.2s; cursor: pointer; background: rgba(0,0,0,0.3); }
-    .mc-checkbox::before { content: "\f00c"; font-family: "Font Awesome 6 Free"; font-weight: 900; font-size: 10px; color: var(--accent-color); transform: scale(0); transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    .mc-checkbox:checked { border-color: var(--accent-color); background: rgba(139, 92, 246, 0.15); }
-    .mc-checkbox:checked::before { transform: scale(1); }
+        .contact-card {
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 24px; transition: 0.3s;
+        }
+        .contact-card:hover { 
+            background: rgba(255,255,255,0.04); transform: translateY(-5px); 
+            border-color: var(--neon-blue); box-shadow: 0 10px 30px rgba(59, 130, 246, 0.05);
+        }
 
-    /* Modern Toast */
-    .achievement-toast {
-      background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.1); padding: 12px 16px; display: flex; align-items: center; gap: 12px;
-      color: white; border-radius: 12px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6);
-      animation: slideInRight 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards, fadeOut 0.5s 3.5s forwards; 
-      min-width: 280px; transform: translateX(120%); z-index: 100;
-    }
-    @keyframes slideInRight { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); pointer-events: none; } }
+        #notification-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
+        .toast {
+            min-width: 280px; padding: 16px 24px; border-radius: 14px; 
+            background: #111; border: 1px solid rgba(255, 255, 255, 0.1); color: white;
+            transform: translateX(120%); transition: 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+        .toast.show { transform: translateX(0); }
 
-    .card-3d { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
-    .card-3d:active { transform: scale(0.98); }
-    
-    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-    
-    .filter-chip { @apply px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer border border-slate-700/50 transition-all bg-slate-900/50 text-slate-400 hover:bg-slate-800 hover:text-white hover:border-slate-600; }
-    .filter-chip.active { @apply bg-[var(--accent-color)] text-white border-[var(--accent-color)] shadow-lg shadow-purple-500/20; }
-    
-    .progress-gradient { background-image: linear-gradient(90deg, #22c55e, #a3e635, #22c55e); }
-    
-    .stepper-btn { @apply w-8 h-8 flex items-center justify-center rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 hover:bg-slate-700 transition-all active:scale-95; }
-  </style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #333; }
+    </style>
 </head>
+<body class="py-12 px-6">
+    <div id="notification-container"></div>
 
-<body class="min-h-screen font-sans antialiased selection:bg-[var(--accent-color)] selection:text-white">
-  <div id="bg-layer"></div>
-  <div id="bg-grid"></div>
-  <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
-
-  <div class="max-w-[1400px] mx-auto px-4 py-6 md:py-8 h-screen flex flex-col">
-    
-    <header class="flex flex-col xl:flex-row justify-between items-center gap-6 mb-6 animate-popup shrink-0">
-      <div class="flex items-center gap-4">
-        <div class="relative group cursor-pointer" onclick="openModal('statsModal')">
-          <div class="w-14 h-14 bg-slate-900/80 rounded-2xl flex items-center justify-center border border-slate-700 shadow-lg group-hover:border-[var(--accent-color)] group-hover:shadow-[var(--accent-color)]/20 transition-all duration-300">
-            <img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/diamond_pickaxe.png" class="w-8 h-8 pixel-art animate-float" loading="lazy">
-          </div>
-          <div class="absolute -bottom-1 -right-1 bg-emerald-500 text-black text-[9px] px-1.5 py-0.5 rounded-full font-bold shadow-lg border-2 border-[#050505]">HYBRID</div>
-        </div>
-        <div>
-          <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-white drop-shadow-xl">MC <span class="text-[var(--accent-color)] transition-colors">Manager</span></h1>
-          <div class="flex items-center gap-3 text-xs text-slate-400 mt-1 font-medium">
-             <div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> <span id="connectionStatus">Online</span></div>
-             <span class="w-1 h-1 bg-slate-700 rounded-full"></span>
-             <span id="globalProgress" class="text-slate-300">Loading...</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="flex flex-wrap justify-center gap-2 p-1.5 bg-slate-900/60 rounded-2xl border border-slate-700/50 backdrop-blur-md shadow-xl">
-        <div class="flex gap-1">
-            <button onclick="changeBiome('overworld')" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-emerald-400 transition-all tooltip flex items-center justify-center"><i class="fa-solid fa-tree"></i></button>
-            <button onclick="changeBiome('nether')" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-red-500 transition-all tooltip flex items-center justify-center"><i class="fa-solid fa-fire"></i></button>
-            <button onclick="changeBiome('end')" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-purple-400 transition-all tooltip flex items-center justify-center"><i class="fa-solid fa-eye"></i></button>
-        </div>
-        <div class="w-px bg-slate-700/50 mx-1 my-1.5"></div>
-        
-        <button onclick="openModal('statsModal')" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-yellow-400 transition-all tooltip flex items-center justify-center" title="Stats"><i class="fa-solid fa-chart-pie"></i></button>
-        <button onclick="openModal('farmTimerModal')" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-orange-400 transition-all tooltip flex items-center justify-center" title="Timer"><i class="fa-solid fa-hourglass-half"></i></button>
-        <button onclick="openModal('enchantModal')" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-blue-400 transition-all tooltip flex items-center justify-center" title="Enchant"><i class="fa-solid fa-book-skull"></i></button>
-        <button onclick="openModal('filterSortModal')" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-pink-400 transition-all tooltip flex items-center justify-center" title="Filter"><i class="fa-solid fa-filter"></i></button>
-        
-        <div class="w-px bg-slate-700/50 mx-1 my-1.5"></div>
-        <button onclick="backupData()" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-slate-400 transition-all tooltip flex items-center justify-center" title="Backup"><i class="fa-solid fa-download"></i></button>
-        <button onclick="document.getElementById('fileInput').click()" class="w-9 h-9 rounded-xl hover:bg-slate-800 text-slate-400 transition-all tooltip flex items-center justify-center" title="Restore"><i class="fa-solid fa-upload"></i></button>
-        <input type="file" id="fileInput" class="hidden" onchange="restoreData(this)" />
-      </div>
-    </header>
-
-    <div class="flex-1 grid grid-cols-1 md:grid-cols-[minmax(280px,1fr)_2fr] gap-6 min-h-0 pb-6">
-      
-      <div class="glass-morphism rounded-2xl border border-slate-700/60 shadow-mc-soft p-4 flex flex-col min-h-0 animate-popup" style="animation-delay: 0.1s;">
-        <div class="flex items-center justify-between gap-3 mb-4 shrink-0">
-          <div class="flex items-center gap-2">
-            <i class="fa-solid fa-folder-tree text-[var(--accent-color)]"></i>
-            <h2 class="font-semibold text-slate-100 text-lg">Projects</h2>
-          </div>
-          <button onclick="openModal('projectModal')" class="px-3 py-1.5 rounded-xl bg-[var(--accent-color)] text-xs font-bold text-white shadow-lg shadow-[var(--accent-color)]/20 hover:brightness-110 active:scale-95 transition-all flex items-center gap-1.5">
-            <i class="fa-solid fa-plus"></i> New
-          </button>
-        </div>
-
-        <div class="flex flex-col gap-2 mb-3 shrink-0">
-          <div class="relative">
-            <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-500"></i>
-            <input id="searchProjects" type="text" placeholder="Search projects..." oninput="renderProjects()" class="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-950/50 border border-slate-700/50 focus:outline-none focus:border-[var(--accent-color)] transition-colors text-white placeholder-slate-600" />
-          </div>
-          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-             <button onclick="setProjectFilter('all')" class="filter-chip active text-[10px]" id="cat-all">All</button>
-             <button onclick="setProjectFilter('build')" class="filter-chip text-[10px]" id="cat-build">Build</button>
-             <button onclick="setProjectFilter('farm')" class="filter-chip text-[10px]" id="cat-farm">Farm</button>
-             <button onclick="setProjectFilter('redstone')" class="filter-chip text-[10px]" id="cat-redstone">Redstone</button>
-          </div>
-        </div>
-
-        <div class="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar" id="projectList">
-             </div>
-        
-        <div id="emptyState" class="hidden flex-col items-center justify-center flex-1 text-slate-500">
-            <img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/map.png" class="w-12 h-12 pixel-art opacity-40 mb-3 grayscale">
-            <p class="text-xs">No projects found.</p>
-        </div>
-      </div>
-
-      <div class="glass-morphism rounded-2xl border border-slate-700/60 shadow-mc-soft p-0 flex flex-col min-h-0 relative overflow-hidden animate-popup" style="animation-delay: 0.2s;">
-        <div class="p-4 border-b border-white/5 bg-slate-900/30 flex items-center justify-between gap-4 shrink-0">
-            <div class="min-w-0">
-                <div class="flex items-center gap-3">
-                    <h2 id="detailTitle" class="font-bold text-slate-100 text-xl truncate">Select a Project</h2>
-                    <span id="detailCat" class="px-2 py-0.5 rounded-md bg-slate-800/50 border border-slate-600/50 text-[10px] uppercase font-bold text-slate-400 hidden sm:inline-block">-</span>
-                </div>
-                <div class="flex items-center gap-2 text-xs text-slate-400 mt-1">
-                     <span id="itemCountDisplay">0 Items</span>
-                     <span class="w-1 h-1 bg-slate-600 rounded-full"></span>
-                     <span id="detailServer" class="truncate max-w-[150px]">-</span>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-2">
-                <div class="relative hidden sm:block">
-                    <input type="text" id="searchItems" placeholder="Search items..." oninput="renderItems()" class="bg-slate-950/50 border border-slate-700/50 rounded-lg py-1.5 pl-8 pr-3 text-xs text-white focus:border-[var(--accent-color)] outline-none w-32 focus:w-48 transition-all" />
-                    <i class="fa-solid fa-search absolute left-2.5 top-2 text-slate-500 text-[10px]"></i>
-                </div>
-                <button onclick="openModal('projectModal')" class="w-8 h-8 rounded-lg border border-slate-700/50 hover:bg-slate-800 text-slate-400 transition-colors flex items-center justify-center"><i class="fa-solid fa-pen"></i></button>
+    <!-- Modal ยืนยันการลบ -->
+    <div id="custom-modal-container">
+        <div class="modal-content text-center">
+            <h4 class="text-white font-bold text-2xl mb-4">ลบรายการถาวร?</h4>
+            <p class="text-gray-400 text-base mb-8">คุณแน่ใจหรือไม่ที่จะลบคิวงานลูกค้ารายนี้ออกจากระบบข้อมูล?</p>
+            <div class="flex gap-4">
+                <button onclick="closeModal()" class="flex-1 px-6 py-4 rounded-2xl border border-white/10 text-gray-400 hover:text-white transition font-semibold">ย้อนกลับ</button>
+                <button id="modal-confirm-btn" class="flex-1 px-6 py-4 rounded-2xl bg-red-600 text-white font-bold hover:bg-red-500 transition shadow-lg shadow-red-900/20">ยืนยันลบ</button>
             </div>
         </div>
+    </div>
 
-        <div class="flex-1 overflow-y-auto p-4 custom-scrollbar bg-slate-950/20" id="itemsContainerWrapper">
-             <div id="itemsContainer" class="flex flex-col gap-2 pb-20"></div>
-        </div>
-
-        <div class="absolute bottom-0 left-0 right-0 p-4 bg-[#0f172a]/95 border-t border-slate-700/50 backdrop-blur-md z-10">
-            <form onsubmit="event.preventDefault(); handleAddItem();" class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-                <div class="relative flex-1 group">
-                    <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none"><i class="fa-solid fa-plus text-slate-500 text-xs"></i></div>
-                    <input type="hidden" id="newItemId">
-                    <input type="text" id="newItemName" placeholder="Add Item (e.g. Redstone)" 
-                           class="w-full bg-slate-900 border border-slate-600 rounded-xl py-2.5 pl-9 pr-3 text-sm text-white focus:border-[var(--accent-color)] outline-none shadow-inner transition-colors"
-                           oninput="searchGlobalItems(this.value)" autocomplete="off" />
-                    <div id="suggestionBox" class="absolute bottom-full left-0 right-0 mb-2 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl max-h-48 overflow-y-auto hidden z-20 custom-scrollbar"></div>
+    <div class="max-w-6xl mx-auto">
+        <!-- Navigation -->
+        <nav class="flex flex-col lg:flex-row justify-between items-center mb-16 gap-8 px-4">
+            <div class="flex items-center gap-5 cursor-pointer group" onclick="switchView('status')">
+                <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center font-bold text-black text-3xl shadow-[0_0_25px_rgba(255,255,255,0.15)] group-hover:scale-105 transition">L</div>
+                <div class="flex flex-col">
+                    <span class="text-white font-bold italic tracking-tighter uppercase text-3xl leading-tight">Laika Shop</span>
+                    <span class="text-[11px] text-blue-500 font-bold tracking-[0.5em] uppercase">Premium Service</span>
                 </div>
-    
-                <div class="flex items-center gap-0 bg-slate-900 border border-slate-600 rounded-xl p-0.5 shadow-inner">
-                    <div class="px-2 flex flex-col items-center border-r border-slate-700">
-                        <span class="text-[8px] text-slate-500 font-bold uppercase">Stacks</span>
-                        <input type="number" id="newStackAmt" placeholder="0" min="0" oninput="updateAddTotal()" class="w-10 bg-transparent text-center text-white outline-none font-mono text-sm placeholder-slate-600">
+            </div>
+            <div class="flex flex-wrap justify-center items-center gap-8">
+                <button onclick="switchView('status')" id="nav-status" class="nav-link text-sm uppercase tracking-[0.2em] text-gray-500 hover:text-white transition font-bold active">หน้าหลัก</button>
+                <button onclick="switchView('history')" id="nav-history" class="nav-link text-sm uppercase tracking-[0.2em] text-gray-500 hover:text-white transition font-bold">ประวัติ</button>
+                <button onclick="switchView('contact')" id="nav-contact" class="nav-link text-sm uppercase tracking-[0.2em] text-gray-500 hover:text-white transition font-bold">ติดต่อเรา</button>
+                <div class="h-8 w-[1px] bg-white/10 hidden lg:block"></div>
+                <div class="flex gap-3">
+                    <input type="password" id="adminKey" placeholder="รหัสเข้าถึง" class="input-dark py-2.5 text-sm w-32 focus:w-48 transition-all">
+                    <button onclick="login()" class="btn-pill px-8 py-2.5 text-[11px] uppercase">เข้าสู่ระบบ</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- View: Main Status -->
+        <div id="statusView" class="view-content">
+            <!-- Dashboard Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="stat-card">
+                    <p class="text-xs uppercase tracking-widest text-gray-500 font-bold mb-2">คิวทั้งหมด</p>
+                    <h3 id="stat-total" class="text-5xl font-bold text-white leading-none">0</h3>
+                </div>
+                <div class="stat-card border-l-4 border-l-yellow-500/50">
+                    <p class="text-xs uppercase tracking-widest text-gray-500 font-bold mb-2">กำลังดำเนินการ</p>
+                    <h3 id="stat-farming" class="text-5xl font-bold text-yellow-400 leading-none">0</h3>
+                </div>
+                <div class="stat-card border-l-4 border-l-green-500/50">
+                    <p class="text-xs uppercase tracking-widest text-gray-500 font-bold mb-2">สำเร็จแล้ว</p>
+                    <h3 id="stat-done" class="text-5xl font-bold text-green-400 leading-none">0</h3>
+                </div>
+            </div>
+
+            <!-- Admin Panel -->
+            <div id="adminPanel" class="hidden mb-16 p-8 md:p-12 rounded-[40px] bg-white/[0.01] border border-white/5 backdrop-blur-2xl">
+                <div class="flex items-center gap-3 mb-10">
+                    <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse shadow-[0_0_12px_#3b82f6]"></div>
+                    <h2 class="text-white text-xs font-bold tracking-[0.3em] uppercase opacity-80">แผงควบคุมผู้ดูแลระบบ</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <input type="text" id="custName" placeholder="ระบุชื่อลูกค้า" class="input-dark font-medium">
+                    <select id="gameMap" class="input-dark cursor-pointer font-medium">
+                        <option value="" disabled selected>เลือกประเภทงาน / เกม</option>
+                        <option value="The Forge">The Forge</option>
+                        <option value="Anime Vanguard">Anime Vanguard</option>
+                        <option value="Blox Fruit">Blox Fruit</option>
+                        <option value="Other Games">อื่นๆ</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                    <input type="text" id="custDetail" placeholder="รายละเอียดการฟาร์ม (เช่น เลเวล, ไอเทม)" class="input-dark font-medium">
+                    <input type="text" id="imgUrl" placeholder="ลิงก์รูปภาพประกอบ (ใส่ URL หรือเว้นว่าง)" class="input-dark font-medium">
+                </div>
+                <button onclick="addNewQueue()" class="btn-pill w-full py-5 text-sm uppercase tracking-[0.3em]">เพิ่มข้อมูลลงในระบบแบบสด</button>
+            </div>
+
+            <!-- Table Section -->
+            <div class="px-2">
+                <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
+                    <div>
+                        <h3 class="text-white font-bold text-xl tracking-[0.1em] uppercase">คิวที่กำลังดำเนินการ</h3>
+                        <p class="text-xs text-gray-600 font-mono tracking-widest mt-2 uppercase">Status: Live Monitoring</p>
                     </div>
-                    <div class="px-2 flex flex-col items-center">
-                        <span class="text-[8px] text-slate-500 font-bold uppercase">Units</span>
-                        <input type="number" id="newSingleAmt" placeholder="0" min="0" oninput="updateAddTotal()" class="w-10 bg-transparent text-center text-white outline-none font-mono text-sm placeholder-slate-600">
+                    <div class="relative w-full md:w-80">
+                        <input type="text" id="searchQueue" oninput="renderData()" placeholder="ค้นหาชื่อลูกค้า/งาน..." class="input-dark w-full py-3.5 text-sm">
                     </div>
                 </div>
-    
-                <button type="submit" class="h-10 w-10 sm:w-12 bg-[var(--accent-color)] hover:brightness-110 text-white rounded-xl shadow-lg flex items-center justify-center transition-transform active:scale-95 shrink-0">
-                    <i class="fa-solid fa-arrow-right"></i>
-                </button>
-            </form>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <div id="statsModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('statsModal')"></div>
-    <div class="glass-morphism p-6 rounded-3xl w-full max-w-2xl m-4 relative transform scale-95 opacity-0 transition-all modal-content">
-        <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
-            <h3 class="text-xl font-bold text-white flex items-center gap-3"><i class="fa-solid fa-chart-pie text-yellow-400"></i> Dashboard Statistics</h3>
-            <button onclick="closeModal('statsModal')" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 flex items-center justify-center"><i class="fa-solid fa-times"></i></button>
-        </div>
-        
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 text-center">
-                <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Projects</div>
-                <div class="text-2xl font-bold text-white" id="statsTotalProjects">0</div>
-            </div>
-            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 text-center">
-                <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Items</div>
-                <div class="text-2xl font-bold text-white" id="statsTotalItems">0</div>
-            </div>
-            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 text-center">
-                <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Completed</div>
-                <div class="text-2xl font-bold text-emerald-400" id="statsCompletedItems">0</div>
-            </div>
-            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 text-center">
-                <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Progress</div>
-                <div class="text-2xl font-bold text-[var(--accent-color)]" id="statsCompletionRate">0%</div>
-            </div>
-        </div>
-        
-        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
-             <div class="text-xs text-slate-400 uppercase mb-3">Top Active Projects</div>
-             <div id="statsTopProjects" class="space-y-2"></div>
-        </div>
-    </div>
-  </div>
-
-  <div id="farmTimerModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('farmTimerModal')"></div>
-    <div class="glass-morphism p-6 rounded-2xl w-full max-w-sm m-4 relative transform scale-95 opacity-0 transition-all modal-content text-center">
-        <h3 class="text-xl font-bold text-orange-400 mb-6 flex items-center justify-center gap-2"><i class="fa-solid fa-hourglass-half"></i> Farm Timer</h3>
-        
-        <div class="text-5xl font-mono font-bold text-white mb-8 tracking-widest relative z-10" id="farmTimerRemaining">00:00</div>
-        
-        <div class="grid grid-cols-2 gap-2 mb-4">
-             <button onclick="startFarmTimer('Crops', 10)" class="filter-chip justify-center border-emerald-500/30 text-emerald-300 hover:bg-emerald-900/30">🌾 Crops 10m</button>
-             <button onclick="startFarmTimer('Mobs', 20)" class="filter-chip justify-center border-red-500/30 text-red-300 hover:bg-red-900/30">⚔️ Mobs 20m</button>
-        </div>
-        
-        <div class="flex items-center gap-2 mb-6 text-xs">
-            <input id="farmCustomMinutes" type="number" class="w-16 bg-slate-900 border border-slate-700 rounded-lg p-2 text-center text-white" placeholder="Min">
-            <input id="farmCustomLabel" type="text" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2 text-white" placeholder="Label (e.g. Gold)">
-            <button onclick="startFarmTimerCustom()" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg">Go</button>
-        </div>
-
-        <button onclick="resetFarmTimer()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-3 rounded-xl text-xs font-bold transition-all">Reset Timer</button>
-    </div>
-  </div>
-
-  <div id="enchantModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('enchantModal')"></div>
-    <div class="glass-morphism p-6 rounded-2xl w-full max-w-sm m-4 relative transform scale-95 opacity-0 transition-all modal-content">
-        <h3 class="text-xl font-bold text-blue-400 mb-4 flex items-center gap-2"><i class="fa-solid fa-book-skull"></i> XP Calculator</h3>
-        
-        <div class="space-y-4">
-            <div class="flex items-center gap-2">
-                <div class="flex-1">
-                    <label class="text-[10px] text-slate-400 uppercase block mb-1">Current Level</label>
-                    <input type="number" id="enchantFrom" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-separate border-spacing-y-4">
+                        <thead>
+                            <tr class="text-xs uppercase tracking-[0.2em] text-gray-500 font-bold">
+                                <th class="pb-2 px-6">งาน / เกม</th>
+                                <th class="pb-2">ลูกค้า</th>
+                                <th class="pb-2">รายละเอียด</th>
+                                <th class="pb-2 text-center">สถานะ</th>
+                                <th id="delHeader" class="hidden pb-2" width="100">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataList"></tbody>
+                    </table>
                 </div>
-                <i class="fa-solid fa-arrow-right text-slate-600 mt-4"></i>
-                <div class="flex-1">
-                    <label class="text-[10px] text-slate-400 uppercase block mb-1">Target</label>
-                    <input type="number" id="enchantTo" placeholder="30" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none">
+                <div id="emptyState" class="hidden py-24 text-center">
+                    <p class="text-gray-600 text-lg italic font-medium">ไม่พบข้อมูลคิวงานที่กำลังดำเนินการ...</p>
                 </div>
             </div>
-            
-            <button onclick="calcEnchantXp()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all">Calculate</button>
+        </div>
 
-            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-700/50 text-center">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-xs text-slate-400">XP Required</span>
-                    <span class="text-lg font-bold text-white" id="enchantXpNeeded">0</span>
+        <!-- View: History (New Feature) -->
+        <div id="historyView" class="view-content view-hidden">
+            <div class="px-2">
+                <div class="text-center mb-16">
+                    <h2 class="text-white text-5xl font-bold tracking-tight mb-6 italic uppercase">HISTORY</h2>
+                    <p class="text-gray-400 text-lg tracking-wide">ประวัติการฟาร์มที่เสร็จสิ้นสมบูรณ์แล้วทั้งหมด</p>
                 </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-xs text-slate-400">Est. Bottles</span>
-                    <span class="text-sm font-mono text-blue-300" id="enchantBottles">0</span>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-separate border-spacing-y-4">
+                        <thead>
+                            <tr class="text-xs uppercase tracking-[0.2em] text-gray-500 font-bold">
+                                <th class="pb-2 px-6">งานที่สำเร็จ</th>
+                                <th class="pb-2">ชื่อลูกค้า</th>
+                                <th class="pb-2">รายละเอียดงาน</th>
+                                <th class="pb-2 text-center">สถานะล่าสุด</th>
+                                <th id="delHeaderHistory" class="hidden pb-2" width="100">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyList"></tbody>
+                    </table>
+                </div>
+                <div id="emptyStateHistory" class="hidden py-24 text-center">
+                    <p class="text-gray-600 text-lg italic font-medium">ยังไม่มีประวัติการฟาร์มที่เสร็จสิ้น...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Contact -->
+        <div id="contactView" class="view-content view-hidden max-w-5xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-white text-5xl font-bold tracking-tight mb-6">ติดต่อเรา</h2>
+                <p class="text-gray-400 text-lg tracking-wide">ช่องทางการสื่อสารหลักสำหรับบริการ Laika Shop</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <a href="https://www.facebook.com/natthaseth.seethapon" target="_blank" class="contact-card p-10 text-center group">
+                    <div class="w-20 h-20 bg-blue-600/10 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-blue-500/20 group-hover:bg-blue-600/20 transition">
+                        <svg class="w-10 h-10 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </div>
+                    <h4 class="text-white font-bold text-lg mb-2">เฟซบุ๊กแอดมิน</h4>
+                    <p class="text-xs text-gray-500 uppercase tracking-widest font-semibold">Natthaseth Seethapon</p>
+                </a>
+                <a href="https://www.facebook.com/profile.php?id=61572258972880" target="_blank" class="contact-card p-10 text-center group">
+                    <div class="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-white/10 group-hover:bg-white/10 transition">
+                        <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12c0-5.523-4.477-10-10-10z"/></svg>
+                    </div>
+                    <h4 class="text-white font-bold text-lg mb-2">หน้าเพจร้าน</h4>
+                    <p class="text-xs text-gray-500 uppercase tracking-widest font-semibold">Laika Shop</p>
+                </a>
+                <div class="contact-card p-10 text-center group cursor-pointer" onclick="copyDiscordID()">
+                    <div class="w-20 h-20 bg-indigo-600/10 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-indigo-500/20 group-hover:bg-indigo-600/20 transition">
+                        <svg class="w-10 h-10 text-indigo-500" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.862-1.297 1.197-1.99a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.863-.886.077.077 0 0 1-.008-.128c.125-.094.248-.192.366-.292a.077.077 0 0 1 .081-.01c3.901 1.787 8.124 1.787 11.968 0a.075.075 0 0 1 .081.01c.118.1.241.198.366.292a.077.077 0 0 1-.008.128 12.212 12.212 0 0 1-1.863.886.076.076 0 0 0-.041.106c.335.693.735 1.36 1.197 1.99a.078.078 0 0 0 .084.028 19.83 19.83 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+                    </div>
+                    <h4 class="text-white font-bold text-lg mb-2">ดิสคอร์ด (คัดลอก)</h4>
+                    <p id="discordID" class="text-[11px] text-indigo-400 font-mono tracking-widest bg-white/5 px-3 py-1.5 rounded font-bold">756871637625864302</p>
                 </div>
             </div>
         </div>
     </div>
-  </div>
 
-  <div id="filterSortModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('filterSortModal')"></div>
-    <div class="glass-morphism p-6 rounded-2xl w-full max-w-xs m-4 relative transform scale-95 opacity-0 transition-all modal-content">
-        <h3 class="text-lg font-bold text-pink-400 mb-4">Filter & Sort</h3>
-        
-        <div class="mb-4">
-            <label class="text-xs text-slate-400 uppercase block mb-2">Show Items</label>
-            <div class="flex flex-wrap gap-2">
-                <button onclick="setItemFilter('all')" class="filter-chip flex-1 text-center" id="filter-all">All</button>
-                <button onclick="setItemFilter('todo')" class="filter-chip flex-1 text-center" id="filter-todo">To Do</button>
-                <button onclick="setItemFilter('done')" class="filter-chip flex-1 text-center" id="filter-done">Done</button>
-            </div>
-        </div>
-        
-        <div>
-            <label class="text-xs text-slate-400 uppercase block mb-2">Sort By</label>
-            <div class="flex flex-wrap gap-2">
-                <button onclick="setSortMode('priority')" class="filter-chip flex-1 text-center" id="sort-priority">Priority</button>
-                <button onclick="setSortMode('name')" class="filter-chip flex-1 text-center" id="sort-name">Name</button>
-            </div>
-        </div>
-    </div>
-  </div>
-
-  <div id="projectModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('projectModal')"></div>
-    <div class="glass-morphism p-6 rounded-2xl w-full max-w-sm m-4 relative transform scale-95 opacity-0 transition-all modal-content">
-        <h3 class="text-lg font-bold text-white mb-4">Project Settings</h3>
-        <div class="space-y-3">
-            <div>
-                <label class="text-[10px] text-slate-400 uppercase">Project Name</label>
-                <input type="text" id="projectName" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-white outline-none focus:border-[var(--accent-color)] mt-1">
-            </div>
-             <div>
-                <label class="text-[10px] text-slate-400 uppercase">Server / World</label>
-                <input type="text" id="projectServer" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-white outline-none focus:border-[var(--accent-color)] mt-1">
-            </div>
-            <div>
-                 <label class="text-[10px] text-slate-400 uppercase mb-1 block">Category</label>
-                 <select id="selectedCat" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-white outline-none">
-                     <option value="build">Build</option>
-                     <option value="farm">Farm</option>
-                     <option value="redstone">Redstone</option>
-                 </select>
-            </div>
-            <div>
-                <label class="text-[10px] text-slate-400 uppercase">Notes / Seed</label>
-                <textarea id="projectNotes" rows="3" class="w-full bg-slate-900 border border-slate-600 rounded-xl p-2.5 text-white outline-none mt-1 text-xs"></textarea>
-            </div>
-            <button onclick="handleAddProject()" class="w-full bg-[var(--accent-color)] py-3 rounded-xl text-white font-bold shadow-lg hover:brightness-110 active:scale-95 transition-all mt-2">Save Project</button>
-        </div>
-    </div>
-  </div>
-
-  <div id="quantityModal" class="fixed inset-0 z-[80] hidden flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('quantityModal')"></div>
-    <div class="glass-morphism p-6 rounded-2xl w-full max-w-xs m-4 relative transform scale-95 opacity-0 transition-all modal-content text-center">
-        <h3 class="text-lg font-bold text-white mb-1">Edit Quantity</h3>
-        <p id="qtyItemName" class="text-xs text-slate-400 mb-6">Target: 0</p>
-        <input type="hidden" id="qtyItemId"><input type="hidden" id="qtyItemMax">
-        
-        <div class="flex items-center justify-center gap-4 mb-6">
-            <div class="flex flex-col items-center">
-                <label class="text-[9px] text-slate-500 font-bold mb-1">STACKS</label>
-                <input type="number" id="qtyStackInput" class="w-20 bg-slate-900 border border-slate-600 rounded-lg p-3 text-center text-white text-lg font-mono outline-none focus:border-[var(--accent-color)]" onclick="this.select()">
-            </div>
-            <div class="flex flex-col items-center">
-                <label class="text-[9px] text-slate-500 font-bold mb-1">UNITS</label>
-                <input type="number" id="qtyUnitInput" class="w-20 bg-slate-900 border border-slate-600 rounded-lg p-3 text-center text-white text-lg font-mono outline-none focus:border-[var(--accent-color)]" onclick="this.select()">
-            </div>
-        </div>
-        <button onclick="saveQuantity()" class="w-full bg-[var(--accent-color)] py-3 rounded-lg text-white font-bold shadow-lg hover:brightness-110 active:scale-95 transition-all">Update</button>
-    </div>
-  </div>
-
-  <input type="file" id="textureInput" class="hidden" accept="image/*" onchange="handleTextureUpload(this)" />
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, set, remove, update, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAn2Pg3uFbIshFVpV1ysNprfIRdFMQ4ZWM",
-      authDomain: "minecraft-deken-project.firebaseapp.com",
-      databaseURL: "https://minecraft-deken-project-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "minecraft-deken-project"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    // Hybrid State
-    let state = { 
-        projects: [], 
-        currentId: null, 
-        globalItems: [], 
-        filterCat: 'all',
-        filterItem: 'all',
-        sortMode: 'priority'
-    };
-    
-    let textures = { server: {}, custom: JSON.parse(localStorage.getItem("mcCustomTextures") || "{}") };
-    let textureUploadId = null;
-    let farmTimer = { interval: null, endTime: null, label: '' };
-
-    // Fetch Global Items
-    fetch("https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/pc/1.20/items.json")
-      .then(r => r.json()).then(d => state.globalItems = d.map(i => ({ id: i.name, name: i.displayName }))).catch(() => {});
-
-    // --- FIREBASE LISTENERS ---
-    onValue(ref(db, "projects"), (s) => {
-      const data = s.val();
-      state.projects = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })).reverse() : [];
-      renderProjects();
-      if(state.currentId) {
-          // Check if current project still exists
-          if(!state.projects.find(p => p.id === state.currentId)) {
-              state.currentId = null;
-              document.getElementById("itemsContainer").innerHTML = "";
-              document.getElementById("detailTitle").innerText = "Select a Project";
-          } else {
-              renderItems();
-          }
-      }
-      updateStats();
-    });
-    onValue(ref(db, "textures"), (s) => { textures.server = s.val() || {}; if(state.currentId) renderItems(); });
-
-    // --- RENDER LOGIC (Hybrid) ---
-
-    window.renderProjects = () => {
-        const list = document.getElementById("projectList");
-        const empty = document.getElementById("emptyState");
-        const search = document.getElementById("searchProjects").value.toLowerCase();
-        
-        let filtered = state.projects.filter(p => p.name.toLowerCase().includes(search));
-        if(state.filterCat !== 'all') filtered = filtered.filter(p => p.category === state.filterCat);
-
-        if (filtered.length === 0) { list.innerHTML = ""; empty.classList.remove("hidden"); empty.classList.add("flex"); return; }
-        empty.classList.add("hidden"); empty.classList.remove("flex");
-
-        list.innerHTML = filtered.map(p => {
-            const items = p.items ? Object.values(p.items) : [];
-            const done = items.filter(i => i.completed).length;
-            const percent = items.length ? Math.round((done / items.length) * 100) : 0;
-            
-            // Logic for active state
-            const isActive = p.id === state.currentId ? 'border-[var(--accent-color)] bg-slate-800/80 ring-1 ring-[var(--accent-color)]/50' : 'border-slate-700/50 bg-slate-900/40 hover:bg-slate-800/60 hover:border-slate-600';
-            const icon = p.category === 'farm' ? 'fa-wheat-awn' : p.category === 'redstone' ? 'fa-microchip' : 'fa-cube';
-            const theme = percent === 100 ? 'emerald' : 'indigo';
-
-            return `<div onclick="selectProject('${p.id}')" class="cursor-pointer rounded-xl p-3 transition-all duration-200 border group ${isActive}">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-8 h-8 rounded-lg bg-slate-950 flex items-center justify-center text-slate-400 group-hover:text-[var(--accent-color)] transition-colors shrink-0">
-                            <i class="fa-solid ${icon} text-xs"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <h3 class="font-bold text-slate-200 text-sm truncate group-hover:text-white transition-colors">${p.name}</h3>
-                            <div class="text-[10px] text-slate-500 truncate">${p.server || 'No Server'}</div>
-                        </div>
-                    </div>
-                    <div class="text-right shrink-0">
-                        <span class="text-[10px] font-mono text-slate-400 block">${percent}%</span>
-                        <button onclick="deleteProject('${p.id}', event)" class="text-slate-600 hover:text-red-400 text-[10px] p-1"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>
-                <div class="h-1 w-full bg-slate-950 rounded-full overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-[var(--accent-color)] to-fuchsia-400 transition-all duration-500" style="width: ${percent}%"></div>
-                </div>
-            </div>`;
-        }).join('');
-    };
-
-    window.selectProject = (id) => {
-        state.currentId = id;
-        renderProjects(); // to update active state
-        renderItems();
-        
-        // Mobile UX: Scroll to right panel
-        if(window.innerWidth < 768) {
-            document.getElementById("itemsContainerWrapper").scrollIntoView({behavior: 'smooth'});
-        }
-    };
-
-    window.renderItems = () => {
-        const p = state.projects.find(x => x.id === state.currentId);
-        if(!p) return;
-
-        // Update Detail Header
-        document.getElementById("detailTitle").innerText = p.name;
-        document.getElementById("detailCat").innerText = p.category;
-        document.getElementById("detailServer").innerText = p.server || "No Server Configured";
-        document.getElementById("itemCountDisplay").innerText = (p.items ? Object.keys(p.items).length : 0) + " Items";
-        document.getElementById("newItemName").focus(); // Focus input for quick adding
-
-        // Setup Project Modal Values
-        document.getElementById("projectName").value = p.name;
-        document.getElementById("projectServer").value = p.server || "";
-        document.getElementById("selectedCat").value = p.category;
-        document.getElementById("projectNotes").value = p.notes || "";
-
-        const container = document.getElementById("itemsContainer");
-        let items = p.items ? Object.keys(p.items).map(k => ({id: k, ...p.items[k]})) : [];
-        
-        // Sort & Filter
-        const search = document.getElementById("searchItems").value.toLowerCase();
-        items = items.filter(i => i.name.toLowerCase().includes(search));
-        
-        if(state.filterItem === 'todo') items = items.filter(i => !i.completed);
-        if(state.filterItem === 'done') items = items.filter(i => i.completed);
-
-        if(state.sortMode === 'priority') items.sort((a,b) => (a.priority==='high' && b.priority!=='high') ? -1 : 0);
-        if(state.sortMode === 'name') items.sort((a,b) => a.name.localeCompare(b.name));
-
-        container.innerHTML = items.map(item => {
-            const tex = textures.server[item.itemId] || textures.custom[item.itemId] || `https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${item.itemId}.png`;
-            const max = item.amount || 1;
-            const current = item.current || 0;
-            const percent = Math.min(100, Math.round((current/max)*100));
-            
-            return `<div class="group relative flex items-center gap-3 bg-slate-900/40 border border-slate-700/50 hover:bg-slate-800/60 hover:border-slate-600 rounded-xl p-3 transition-all card-3d ${item.completed ? 'opacity-50 grayscale-[0.5]' : ''} ${item.priority==='high' ? 'border-l-2 border-l-red-500' : ''}">
-                <div class="flex items-center gap-3">
-                    <input type="checkbox" class="mc-checkbox" ${item.completed ? 'checked' : ''} onchange="toggleItem('${item.id}', this.checked, ${max})">
-                    <div class="w-10 h-10 bg-slate-950 rounded-lg flex items-center justify-center border border-slate-800 relative cursor-pointer hover:border-[var(--accent-color)] transition-colors group/icon" onclick="uploadTex('${item.itemId}')">
-                        <img src="${tex}" loading="lazy" class="w-6 h-6 pixel-art object-contain" onerror="this.src='https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/barrier.png'">
-                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover/icon:opacity-100 flex items-center justify-center rounded-lg transition-opacity"><i class="fa-solid fa-camera text-[8px] text-white"></i></div>
-                    </div>
-                </div>
-
-                <div class="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
-                    <div class="flex items-center gap-2">
-                        <span class="font-medium text-slate-200 text-sm truncate ${item.completed ? 'line-through text-slate-500' : ''}">${item.name}</span>
-                        ${item.priority === 'high' ? '<i class="fa-solid fa-fire text-red-500 text-[10px] animate-pulse"></i>' : ''}
-                        <a href="https://minecraft.wiki/w/${item.name.replace(/\s+/g,'_')}" target="_blank" class="text-slate-600 hover:text-[var(--accent-color)] opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-book text-[10px]"></i></a>
-                    </div>
-                    <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-800">
-                        <div class="h-full progress-gradient transition-all duration-300" style="width: ${percent}%"></div>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-3 pl-2">
-                    <div class="flex items-center bg-slate-950 rounded-lg border border-slate-800 p-0.5 shadow-inner">
-                        <button class="stepper-btn w-6 h-6 rounded text-[10px]" onmousedown="adjustAmount('${item.id}', -1, ${current}, ${max})"><i class="fa-solid fa-minus"></i></button>
-                        <div class="w-12 text-center cursor-pointer hover:text-white transition-colors" onclick="openQuantityModal('${item.id}', '${item.name}', ${current}, ${max})">
-                            <div class="text-xs font-mono font-bold ${current >= max ? 'text-emerald-400' : 'text-slate-300'}">${current}</div>
-                        </div>
-                        <button class="stepper-btn w-6 h-6 rounded text-[10px]" onmousedown="adjustAmount('${item.id}', 1, ${current}, ${max})"><i class="fa-solid fa-plus"></i></button>
-                    </div>
-                    <button onclick="delItem('${item.id}')" class="w-6 h-6 flex items-center justify-center rounded hover:bg-red-500/20 text-slate-600 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100"><i class="fa-solid fa-xmark text-xs"></i></button>
-                </div>
-            </div>`;
-        }).join('');
-    };
-
-    // --- LOGIC FUNCTIONS ---
-
-    window.updateAddTotal = () => {
-        const s = parseInt(document.getElementById("newStackAmt").value) || 0;
-        const u = parseInt(document.getElementById("newSingleAmt").value) || 0;
-        // Just for visual feedback if needed, currently no display for total in the compact form
-    };
-
-    window.handleAddItem = () => {
-        const name = document.getElementById("newItemName").value;
-        const s = parseInt(document.getElementById("newStackAmt").value) || 0;
-        const u = parseInt(document.getElementById("newSingleAmt").value) || 0;
-        const total = (s * 64) + u;
-        const finalAmount = total > 0 ? total : 64; 
-        
-        if (!name || !state.currentId) {
-            if(!state.currentId) showAchievement("Select a project first!", "red");
-            return;
-        }
-
-        push(ref(db, `projects/${state.currentId}/items`), {
-            name: name, itemId: document.getElementById("newItemId").value || name.toLowerCase().replace(/\s+/g, '_'),
-            amount: finalAmount, current: 0, completed: false, priority: "normal"
-        });
-        
-        // Reset Form
-        document.getElementById("newItemName").value = "";
-        document.getElementById("newItemName").focus();
-        document.getElementById("newStackAmt").value = "";
-        document.getElementById("newSingleAmt").value = "";
-        document.getElementById("suggestionBox").classList.add("hidden");
-    };
-
-    window.handleAddProject = () => {
-        const id = state.currentId; 
-        const name = document.getElementById("projectName").value;
-        const cat = document.getElementById("selectedCat").value;
-        const server = document.getElementById("projectServer").value;
-        const notes = document.getElementById("projectNotes").value;
-        
-        if(id) {
-            // Update Existing
-            update(ref(db, `projects/${id}`), { name, category: cat, server, notes });
-            showAchievement("Project Updated!", "gold");
-        } else {
-            // Create New
-            if(name) {
-                const newRef = push(ref(db,"projects"), { name, category: cat, server, notes, items: {} });
-                state.currentId = newRef.key;
-                showAchievement("Project Created!", "gold");
-            }
-        }
-        closeModal("projectModal");
-    };
-
-    // --- MODAL & FEATURE LOGIC ---
-
-    // Stats
-    window.updateStats = () => {
-        let pCount = state.projects.length;
-        let tItems = 0;
-        let cItems = 0;
-        state.projects.forEach(p => {
-            if(p.items) {
-                const vals = Object.values(p.items);
-                tItems += vals.length;
-                cItems += vals.filter(x => x.completed).length;
-            }
-        });
-        const percent = tItems > 0 ? Math.round((cItems/tItems)*100) : 0;
-        
-        if(document.getElementById("statsTotalProjects")) {
-            document.getElementById("statsTotalProjects").innerText = pCount;
-            document.getElementById("statsTotalItems").innerText = tItems;
-            document.getElementById("statsCompletedItems").innerText = cItems;
-            document.getElementById("statsCompletionRate").innerText = percent + "%";
-            
-            // Top Projects Logic
-            const top = [...state.projects]
-                .map(p => {
-                    const i = Object.values(p.items||{});
-                    const d = i.filter(x=>x.completed).length;
-                    return {name: p.name, pct: i.length ? Math.round((d/i.length)*100) : 0}
-                })
-                .sort((a,b) => b.pct - a.pct)
-                .slice(0,3);
-            
-            document.getElementById("statsTopProjects").innerHTML = top.map(p => 
-                `<div class="flex justify-between text-xs text-slate-300 border-b border-white/5 py-1 last:border-0"><span>${p.name}</span><span class="font-mono text-[var(--accent-color)]">${p.pct}%</span></div>`
-            ).join('');
-        }
-    };
-
-    // Timer
-    window.startFarmTimer = (label, mins) => {
-        clearInterval(farmTimer.interval);
-        const ms = mins * 60 * 1000;
-        farmTimer.endTime = Date.now() + ms;
-        farmTimer.label = label;
-        
-        farmTimer.interval = setInterval(() => {
-            const diff = farmTimer.endTime - Date.now();
-            if(diff <= 0) {
-                clearInterval(farmTimer.interval);
-                document.getElementById("farmTimerRemaining").innerText = "00:00";
-                showAchievement(`${label} Timer Finished!`, "gold");
-                new Audio('https://assets.mcasset.cloud/1.21/assets/minecraft/sounds/random/orb.ogg').play().catch(()=>{});
-            } else {
-                const m = Math.floor(diff / 60000);
-                const s = Math.floor((diff % 60000) / 1000);
-                document.getElementById("farmTimerRemaining").innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-            }
-        }, 1000);
-        showAchievement(`Timer set for ${mins}m`, "blue");
-    };
-    window.startFarmTimerCustom = () => {
-        const m = parseInt(document.getElementById("farmCustomMinutes").value) || 0;
-        const l = document.getElementById("farmCustomLabel").value || "Custom";
-        if(m > 0) startFarmTimer(l, m);
-    };
-    window.resetFarmTimer = () => { clearInterval(farmTimer.interval); document.getElementById("farmTimerRemaining").innerText = "00:00"; };
-
-    // Enchant
-    window.calcEnchantXp = () => {
-        const from = parseInt(document.getElementById("enchantFrom").value) || 0;
-        const to = parseInt(document.getElementById("enchantTo").value) || 0;
-        const getXP = (lvl) => {
-            if(lvl <= 16) return lvl * lvl + 6 * lvl;
-            if(lvl <= 31) return 2.5 * lvl * lvl - 40.5 * lvl + 360;
-            return 4.5 * lvl * lvl - 162.5 * lvl + 2220;
+    <script>
+        // --- Firebase Config ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyA50p8gXK-BUm6C4jzD7OZpaz2jdRCKHUQ",
+            authDomain: "laikashop-c43bd.firebaseapp.com",
+            databaseURL: "https://laikashop-c43bd-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "laikashop-c43bd",
+            storageBucket: "laikashop-c43bd.firebasestorage.app",
+            messagingSenderId: "955266408750",
+            appId: "1:955266408750:web:1ef4dfca18756c49d15abf"
         };
-        const xp = Math.max(0, Math.round(getXP(to) - getXP(from)));
-        document.getElementById("enchantXpNeeded").innerText = xp.toLocaleString();
-        document.getElementById("enchantBottles").innerText = "~" + Math.ceil(xp / 7);
-    };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let isAdmin = false;
+        let cachedData = {};
 
-    // Biome
-    window.changeBiome = (b) => {
-        const r = document.documentElement;
-        if(b === 'nether') {
-            r.style.setProperty('--bg-gradient-start', '#450a0a');
-            r.style.setProperty('--bg-gradient-end', '#1a0505');
-            r.style.setProperty('--accent-color', '#ef4444');
-            showAchievement("Nether Theme Loaded", "red");
-        } else if (b === 'end') {
-            r.style.setProperty('--bg-gradient-start', '#2e1065');
-            r.style.setProperty('--bg-gradient-end', '#0f0518');
-            r.style.setProperty('--accent-color', '#d946ef');
-            showAchievement("End Theme Loaded", "purple");
-        } else {
-            r.style.setProperty('--bg-gradient-start', '#0f172a');
-            r.style.setProperty('--bg-gradient-end', '#020617');
-            r.style.setProperty('--accent-color', '#8b5cf6');
-            showAchievement("Overworld Theme Loaded", "blue");
+        // --- Improved View Controller with Slide-Fade Transition ---
+        function switchView(viewName) {
+            const views = {
+                status: document.getElementById('statusView'),
+                history: document.getElementById('historyView'),
+                contact: document.getElementById('contactView')
+            };
+            const navs = {
+                status: document.getElementById('nav-status'),
+                history: document.getElementById('nav-history'),
+                contact: document.getElementById('nav-contact')
+            };
+
+            // Reset all
+            Object.values(views).forEach(v => {
+                v.classList.add('view-hidden');
+            });
+            Object.values(navs).forEach(n => n.classList.remove('active'));
+
+            // Set active
+            const activeView = views[viewName];
+            activeView.classList.remove('view-hidden');
+            navs[viewName].classList.add('active');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-    };
 
-    // Filters
-    window.setProjectFilter = (c) => { 
-        state.filterCat = c; 
-        document.querySelectorAll("#projectList .filter-chip").forEach(b => b.classList.remove("active"));
-        if(document.getElementById("cat-"+c)) document.getElementById("cat-"+c).classList.add("active"); // Fixed logic
-        renderProjects(); 
-    };
-    window.setItemFilter = (f) => { 
-        state.filterItem = f; 
-        document.querySelectorAll("#filterSortModal .filter-chip").forEach(b => b.classList.remove("active"));
-        document.getElementById("filter-"+f).classList.add("active");
-        renderItems(); 
-    };
-    window.setSortMode = (m) => {
-        state.sortMode = m;
-        document.querySelectorAll("#filterSortModal .filter-chip").forEach(b => b.classList.remove("active"));
-        document.getElementById("sort-"+m).classList.add("active");
-        renderItems();
-    };
-
-    // --- STANDARD UTILS ---
-    window.adjustAmount = (id, d, c, m) => { 
-        const n = Math.max(0, Math.min(m, c+d)); 
-        update(ref(db, `projects/${state.currentId}/items/${id}`), {current:n, completed:n>=m}); 
-        if(n>=m && d>0) showAchievement("Item Completed!", "emerald"); 
-    };
-    window.toggleItem = (id, c, m) => { 
-        update(ref(db, `projects/${state.currentId}/items/${id}`), {completed:c, current:c?m:0}); 
-        if(c){ confetti({particleCount:40, spread:70, origin:{y:0.8}, colors: ['#a855f7', '#ec4899']}); showAchievement("Task Done!", "gold"); } 
-    };
-    window.delItem=(id)=>{if(confirm("Delete item?"))remove(ref(db,`projects/${state.currentId}/items/${id}`))}; 
-    window.deleteProject=(id,e)=>{e.stopPropagation();if(confirm("Delete Project?"))remove(ref(db,`projects/${id}`)); if(state.currentId===id){state.currentId=null; document.getElementById("itemsContainer").innerHTML="";}};
-
-    window.openQuantityModal = (id, name, current, max) => {
-        document.getElementById("qtyItemId").value = id;
-        document.getElementById("qtyItemMax").value = max;
-        document.getElementById("qtyItemName").innerText = `${name} (${current}/${max})`;
-        document.getElementById("qtyStackInput").value = Math.floor(current / 64);
-        document.getElementById("qtyUnitInput").value = current % 64;
-        openModal("quantityModal");
-    };
-
-    window.saveQuantity = () => {
-        const id = document.getElementById("qtyItemId").value;
-        const max = parseInt(document.getElementById("qtyItemMax").value) || 1;
-        const s = parseInt(document.getElementById("qtyStackInput").value) || 0;
-        const u = parseInt(document.getElementById("qtyUnitInput").value) || 0;
-        const total = (s * 64) + u;
-        const finalVal = Math.min(max, Math.max(0, total));
-        update(ref(db, `projects/${state.currentId}/items/${id}`), { current: finalVal, completed: finalVal >= max });
-        if(finalVal >= max) showAchievement("Updated!", "emerald");
-        closeModal("quantityModal");
-    };
-
-    window.searchGlobalItems=(v)=>{ 
-        const b = document.getElementById("suggestionBox"); 
-        if(v.length<2){b.classList.add("hidden");return;} 
-        const m = state.globalItems.filter(i=>i.name.toLowerCase().includes(v.toLowerCase())).slice(0,10); 
-        if(m.length){
-            b.innerHTML=m.map(i=>`<div class="flex items-center gap-3 p-2.5 hover:bg-slate-700/50 cursor-pointer text-xs text-slate-300 transition-colors border-b border-slate-700/50 last:border-0" onclick="document.getElementById('newItemName').value='${i.name}';document.getElementById('newItemId').value='${i.id}';this.parentElement.classList.add('hidden');document.getElementById('newStackAmt').focus()"><img src="https://assets.mcasset.cloud/1.21/assets/minecraft/textures/item/${i.id}.png" class="w-5 h-5 pixel-art" loading="lazy"><span class="font-medium">${i.name}</span></div>`).join('');
-            b.classList.remove("hidden");
-        } else b.classList.add("hidden"); 
-    };
-
-    window.uploadTex=(id)=>{ textureUploadId=id; document.getElementById("textureInput").click(); }; 
-    window.handleTextureUpload=(el)=>{ const f=el.files[0]; if(f){ const r=new FileReader(); r.onload=(e)=>set(ref(db,"textures/"+textureUploadId),e.target.result); r.readAsDataURL(f); } el.value=''; };
-    window.backupData = () => {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.projects));
-        const anchor = document.createElement('a'); anchor.setAttribute("href", dataStr); anchor.setAttribute("download", "mc_backup.json"); document.body.appendChild(anchor); anchor.click(); anchor.remove();
-        showAchievement("Backup Downloaded!", "blue");
-    };
-    window.restoreData = (el) => {
-        const f = el.files[0]; if(!f) return;
-        const r = new FileReader();
-        r.onload = (e) => { try { set(ref(db, "projects"), JSON.parse(e.target.result)); showAchievement("Data Restored!", "emerald"); } catch(err) { alert("Invalid file"); } };
-        r.readAsText(f); el.value = '';
-    };
-
-    // UI Helpers
-    window.openModal = (id) => { 
-        if(id==='projectModal' && !state.currentId && !document.getElementById("projectName").value) {
-            // Clear inputs if opening for new project
-            document.getElementById("projectName").value = "";
-            document.getElementById("projectServer").value = "";
-            document.getElementById("projectNotes").value = "";
+        // --- Notification ---
+        function notify(msg, type = 'success') {
+            const container = document.getElementById('notification-container');
+            const toast = document.createElement('div');
+            toast.className = `toast show`;
+            toast.style.borderLeft = type === 'success' ? '5px solid #3b82f6' : '5px solid #ef4444';
+            toast.innerHTML = `<span class="text-sm font-bold tracking-wide">${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
         }
-        const m = document.getElementById(id); m.classList.remove("hidden"); 
-        requestAnimationFrame(() => { m.querySelector(".modal-content").classList.remove("scale-95","opacity-0"); m.querySelector(".modal-content").classList.add("scale-100","opacity-100"); });
-    };
-    window.closeModal = (id) => { 
-        const m = document.getElementById(id); 
-        m.querySelector(".modal-content").classList.remove("scale-100","opacity-100"); m.querySelector(".modal-content").classList.add("scale-95","opacity-0"); 
-        setTimeout(()=>m.classList.add("hidden"), 300); 
-    };
-    window.showAchievement = (t,c) => { 
-        const d = document.createElement("div"); d.className="achievement-toast"; 
-        let i="fa-trophy"; let cl="yellow";
-        if(c==='emerald'){i="fa-check-circle"; cl="emerald";} 
-        if(c==='blue'){i="fa-floppy-disk"; cl="blue";}
-        if(c==='red'){i="fa-fire"; cl="red";}
-        d.style.borderLeftColor = `var(--accent-color)`;
-        d.innerHTML=`<div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-${cl}-400"><i class="fa-solid ${i}"></i></div><div><span class="text-[10px] text-slate-400 font-bold uppercase block mb-0.5">Notification</span><span class="font-bold text-sm text-white">${t}</span></div>`; 
-        document.getElementById("toast-container").appendChild(d); 
-        setTimeout(()=>d.remove(), 4000); 
-    };
-  </script>
+
+        // --- Modal System ---
+        function showConfirm(callback) {
+            const modal = document.getElementById('custom-modal-container');
+            modal.style.display = 'flex';
+            document.getElementById('modal-confirm-btn').onclick = () => {
+                callback();
+                closeModal();
+            };
+        }
+        function closeModal() { document.getElementById('custom-modal-container').style.display = 'none'; }
+
+        // --- Copy Discord ID ---
+        function copyDiscordID() {
+            const id = document.getElementById('discordID').innerText;
+            const tempInput = document.createElement('input');
+            tempInput.value = id;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            notify("คัดลอก ID ดิสคอร์ดลงเครื่องแล้ว!");
+        }
+
+        // --- Admin Logic ---
+        function login() {
+            const key = document.getElementById('adminKey').value;
+            if(key === "0804141441z") {
+                isAdmin = true;
+                document.getElementById('adminPanel').classList.remove('hidden');
+                document.getElementById('delHeader').classList.remove('hidden');
+                document.getElementById('delHeaderHistory').classList.remove('hidden');
+                notify("ยินดีต้อนรับ แอดมินเข้าสู่ระบบสำเร็จ");
+                renderData();
+            } else { notify("รหัสเข้าถึงไม่ถูกต้อง กรุณาลองใหม่", "error"); }
+        }
+
+        function addNewQueue() {
+            const name = document.getElementById('custName').value;
+            const game = document.getElementById('gameMap').value;
+            if(!name || !game) return notify("กรุณากรอกข้อมูลให้ครบถ้วนก่อนบันทึก", "error");
+
+            db.ref('jobs').push().set({
+                name, game,
+                detail: document.getElementById('custDetail').value,
+                img: document.getElementById('imgUrl').value || 'https://via.placeholder.com/150/111/fff?text=LAIKA',
+                status: 'รอคิว',
+                timestamp: Date.now()
+            });
+            notify("บันทึกคิวงานใหม่เข้าระบบสำเร็จ");
+            ['custName','custDetail','imgUrl'].forEach(id => document.getElementById(id).value = '');
+        }
+
+        // --- Render Logic (Splitting Active and History) ---
+        function renderData() {
+            const activeList = document.getElementById('dataList');
+            const historyList = document.getElementById('historyList');
+            const search = document.getElementById('searchQueue').value.toLowerCase();
+            
+            let activeHtml = '';
+            let historyHtml = '';
+            
+            let stats = { total: 0, farming: 0, done: 0 };
+            let hasActive = false;
+            let hasHistory = false;
+
+            if (cachedData) {
+                const entries = Object.entries(cachedData).sort((a,b) => b[1].timestamp - a[1].timestamp);
+                
+                entries.forEach(([id, val]) => {
+                    stats.total++;
+                    if(val.status === 'กำลังฟาร์ม') stats.farming++;
+                    if(val.status === 'เสร็จสิ้น') stats.done++;
+
+                    const isMatch = val.name.toLowerCase().includes(search) || val.game.toLowerCase().includes(search);
+                    
+                    const rowContent = `
+                        <tr class="bg-white/[0.03] border border-white/5 group hover:bg-white/[0.06] hover:shadow-[0_0_25px_rgba(59,130,246,0.08)] transition-all">
+                            <td class="py-6 px-6 rounded-l-2xl">
+                                <div class="flex items-center gap-5">
+                                    <img src="${val.img}" onerror="this.src='https://via.placeholder.com/150/111/fff?text=LAIKA'" class="w-14 h-14 rounded-xl object-cover border border-white/10 shadow-xl">
+                                    <span class="text-white font-bold text-lg">${val.game}</span>
+                                </div>
+                            </td>
+                            <td class="py-6 text-gray-100 font-bold text-base">${val.name}</td>
+                            <td class="py-6 text-gray-400 text-sm font-medium leading-relaxed">${val.detail || '-'}</td>
+                            <td class="py-6 text-center">
+                                ${isAdmin ? `
+                                    <select onchange="updateStatus('${id}', this.value)" class="bg-black border border-white/20 text-xs rounded-xl p-2.5 text-white outline-none focus:border-blue-500 font-bold">
+                                        <option value="รอคิว" ${val.status==='รอคิว'?'selected':''}>รอคิว</option>
+                                        <option value="กำลังฟาร์ม" ${val.status==='กำลังฟาร์ม'?'selected':''}>กำลังฟาร์ม</option>
+                                        <option value="เสร็จสิ้น" ${val.status==='เสร็จสิ้น'?'selected':''}>เสร็จสิ้น</option>
+                                    </select>
+                                ` : `
+                                    <span class="px-6 py-2 rounded-full text-[11px] font-bold border uppercase tracking-widest shadow-sm ${val.status === 'เสร็จสิ้น' ? 'text-green-400 border-green-500/30 bg-green-500/10' : (val.status === 'กำลังฟาร์ม' ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10' : 'text-blue-400 border-blue-500/30 bg-blue-500/10')}">${val.status}</span>
+                                `}
+                            </td>
+                            ${isAdmin ? `<td class="py-6 px-8 text-right rounded-r-2xl"><button onclick="deleteJob('${id}')" class="w-10 h-10 rounded-full hover:bg-red-500/20 text-gray-700 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center font-bold text-xl">✕</button></td>` : ''}
+                        </tr>`;
+
+                    if (val.status === 'เสร็จสิ้น') {
+                        historyHtml += rowContent;
+                        hasHistory = true;
+                    } else if (isMatch) {
+                        activeHtml += rowContent;
+                        hasActive = true;
+                    }
+                });
+            }
+
+            // Stats Update
+            document.getElementById('stat-total').innerText = stats.total;
+            document.getElementById('stat-farming').innerText = stats.farming;
+            document.getElementById('stat-done').innerText = stats.done;
+
+            // Render Active
+            activeList.innerHTML = activeHtml;
+            document.getElementById('emptyState').style.display = hasActive ? 'none' : 'block';
+
+            // Render History
+            historyList.innerHTML = historyHtml;
+            document.getElementById('emptyStateHistory').style.display = hasHistory ? 'none' : 'block';
+        }
+
+        function loadData() {
+            db.ref('jobs').on('value', (snapshot) => {
+                cachedData = snapshot.val() || {};
+                renderData();
+            });
+        }
+
+        function updateStatus(id, newStatus) { 
+            db.ref('jobs/' + id).update({ status: newStatus }); 
+            if(newStatus === 'เสร็จสิ้น') {
+                notify("งานสำเร็จแล้ว! ย้ายไปที่หน้าประวัติการฟาร์ม");
+            } else {
+                notify(`อัปเดตสถานะเป็น: ${newStatus}`);
+            }
+        }
+
+        function deleteJob(id) { 
+            showConfirm(() => { 
+                db.ref('jobs/' + id).remove(); 
+                notify("ลบรายการออกจากฐานข้อมูลแล้ว", "error"); 
+            }); 
+        }
+
+        loadData();
+    </script>
 </body>
 </html>
